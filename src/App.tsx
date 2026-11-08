@@ -52,10 +52,21 @@ export const App: React.FC = () => {
 
   // Carregar dados na inicialização e sincronizar com Supabase
   useEffect(() => {
+    // 1. Limpeza automática de dados de teste de versões anteriores
+    const versaoProducao = localStorage.getItem('radiant_prod_v1');
+    if (!versaoProducao) {
+      storage.saveClientes([]);
+      storage.saveProdutos([]);
+      storage.saveVendas([]);
+      storage.saveCobrancas([]);
+      localStorage.setItem('radiant_prod_v1', 'true');
+    }
+
     recarregarDados();
 
     if (syncService.isConfigured() && navigator.onLine) {
-      syncService.sincronizarTudo().then(res => {
+      // Puxa a verdade do banco Supabase primeiro
+      syncService.puxarDaNuvem().then(res => {
         if (res.sucesso) {
           recarregarDados();
         }
