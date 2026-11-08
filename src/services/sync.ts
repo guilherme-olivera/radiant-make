@@ -54,7 +54,7 @@ export const syncService = {
 
       // 4. Clientes
       const { data: cliData } = await supabase.from('clientes').select('*');
-      if (cliData && cliData.length > 0) {
+      if (cliData) {
         const clientes: Cliente[] = cliData.map(c => ({
           id: c.id,
           nome: c.nome,
@@ -70,7 +70,7 @@ export const syncService = {
 
       // 5. Produtos
       const { data: prodData } = await supabase.from('produtos').select('*');
-      if (prodData && prodData.length > 0) {
+      if (prodData) {
         const produtos: Produto[] = prodData.map(p => ({
           id: p.id,
           nome: p.nome,
@@ -91,7 +91,7 @@ export const syncService = {
 
       // 6. Vendas
       const { data: vendasData } = await supabase.from('vendas').select('*').order('data', { ascending: false });
-      if (vendasData && vendasData.length > 0) {
+      if (vendasData) {
         const vendas: Venda[] = vendasData.map(v => ({
           id: v.id,
           clienteId: v.cliente_id || undefined,
@@ -112,7 +112,7 @@ export const syncService = {
 
       // 7. Cobranças
       const { data: cobData } = await supabase.from('cobrancas').select('*').order('data_vencimento', { ascending: true });
-      if (cobData && cobData.length > 0) {
+      if (cobData) {
         const cobrancas: Cobranca[] = cobData.map(c => ({
           id: c.id,
           vendaId: c.venda_id,

@@ -45,109 +45,11 @@ export const INITIAL_CONFIG: ConfiguracoesLoja = {
   mensagemDataComemorativa: 'Oi, {nome}! 🌸 Passando para desejar uma semana iluminada e avisar que chegaram novidades incríveis de makes e autocuidado na Radiant Make! ✨ Se quiser ver o catálogo atualizado, é só me responder aqui! 💖'
 };
 
-export const INITIAL_CLIENTES: Cliente[] = [
-  { id: '1', nome: 'Camila Silva', referencia: 'Luana cabeleireira / Salão Bella', whatsapp: '19987654321', instagram: 'camilasilva.make', dataNascimento: '1998-11-12', genero: 'FEMININO' },
-  { id: '2', nome: 'Beatriz Oliveira', referencia: 'Prima da Mari / Mercado JJR', whatsapp: '19981234567', instagram: 'bia_oliveira', dataNascimento: '1995-11-08', genero: 'FEMININO' },
-  { id: '3', nome: 'Carla Menezes', referencia: 'Professora da academia', whatsapp: '19976543210', instagram: 'carla.m', dataNascimento: '1990-05-20', genero: 'FEMININO' },
-  { id: '4', nome: 'Ana Paula Diniz', referencia: 'Vizinha do bloco B', whatsapp: '19992345678', instagram: 'anapaula.diniz', dataNascimento: '1993-12-04', genero: 'FEMININO' },
-  { id: '5', nome: 'Juliana Santos', referencia: 'Amiga do trabalho', whatsapp: '19988776655', instagram: 'ju.santos', dataNascimento: '1996-08-15', genero: 'FEMININO' },
-  { id: '6', nome: 'Lucas Miranda', referencia: 'Namorado da Bia / Presentes', whatsapp: '19991122334', dataNascimento: '1992-11-25', genero: 'MASCULINO' }
-];
+export const INITIAL_CLIENTES: Cliente[] = [];
 
-export const INITIAL_PRODUTOS: Produto[] = [
-  { id: '1', nome: 'Esfoliante Facial Rosa Mosqueta', precoVenda: 28.00, precoCusto: 14.00, estoque: 8, categoriaId: 'cat-2', categoria: 'Skincare', marca: 'Ruby Rose', emoji: '🧴', alertaEstoqueBaixo: true, estoqueMinimo: 2 },
-  { id: '2', nome: 'Gloss Labial Love Volume', precoVenda: 22.00, precoCusto: 10.00, estoque: 12, categoriaId: 'cat-3', categoria: 'Boca & Gloss', marca: 'Melu', emoji: '💋', alertaEstoqueBaixo: true, estoqueMinimo: 3 },
-  { id: '3', nome: 'Kit Presente Men Gel + Pomada', precoVenda: 55.00, precoCusto: 28.00, estoque: 3, categoriaId: 'cat-5', categoria: 'Kits & Presentes', marca: 'Eudora', emoji: '🎁', alertaEstoqueBaixo: true, estoqueMinimo: 1 },
-  { id: '4', nome: 'Perfume Masculino Selvagem 40', precoVenda: 95.00, precoCusto: 48.00, estoque: 5, categoriaId: 'cat-6', categoria: 'Perfumaria', marca: 'Natura', emoji: '✨', alertaEstoqueBaixo: true, estoqueMinimo: 2 },
-  { id: '5', nome: 'Bolsa Tiracolo Marrom Croco', precoVenda: 130.00, precoCusto: 75.00, estoque: 1, categoriaId: 'cat-7', categoria: 'Acessórios & Bolsas', marca: 'Radiant Própria', emoji: '👜', alertaEstoqueBaixo: true, estoqueMinimo: 1 },
-  { id: '6', nome: 'Kit Skincare La Belle Mosquet', precoVenda: 65.00, precoCusto: 32.00, estoque: 4, categoriaId: 'cat-2', categoria: 'Skincare', marca: 'Bruna Tavares', emoji: '🧴', alertaEstoqueBaixo: true, estoqueMinimo: 2 },
-  { id: '7', nome: 'Base Líquida Matte Velvet', precoVenda: 45.00, precoCusto: 24.00, estoque: 1, categoriaId: 'cat-1', categoria: 'Makes', marca: 'Boca Rosa', emoji: '💄', alertaEstoqueBaixo: true, estoqueMinimo: 2 },
-  { id: '8', nome: 'Paleta Sombras Chocofun', precoVenda: 58.00, precoCusto: 29.00, estoque: 7, categoriaId: 'cat-4', categoria: 'Olhos & Sobrancelhas', marca: 'Franciny Ehlke', emoji: '👁️', alertaEstoqueBaixo: true, estoqueMinimo: 2 }
-];
+export const INITIAL_PRODUTOS: Produto[] = [];
 
-export const INITIAL_COBRANCAS: Cobranca[] = [
-  {
-    id: 'cob-1',
-    vendaId: 'v-101',
-    clienteNome: 'Carla Menezes',
-    clienteWhatsapp: '19976543210',
-    descricaoItens: 'Bolsa Tiracolo Marrom Croco',
-    valor: 65.00,
-    dataVencimento: '2026-11-04',
-    status: 'ATRASADO',
-    formaPagamento: 'PRAZO',
-    numeroParcela: 1,
-    totalParcelas: 2,
-    itensDetalhados: [
-      { produtoId: '5', nome: 'Bolsa Tiracolo Marrom Croco', quantidade: 1, precoUnitario: 130.00, subtotal: 130.00 }
-    ]
-  },
-  {
-    id: 'cob-1-p2',
-    vendaId: 'v-101',
-    clienteNome: 'Carla Menezes',
-    clienteWhatsapp: '19976543210',
-    descricaoItens: 'Bolsa Tiracolo Marrom Croco',
-    valor: 65.00,
-    dataVencimento: '2026-12-04',
-    status: 'PENDENTE',
-    formaPagamento: 'PRAZO',
-    numeroParcela: 2,
-    totalParcelas: 2,
-    itensDetalhados: [
-      { produtoId: '5', nome: 'Bolsa Tiracolo Marrom Croco', quantidade: 1, precoUnitario: 130.00, subtotal: 130.00 }
-    ]
-  },
-  {
-    id: 'cob-2',
-    vendaId: 'v-102',
-    clienteNome: 'Camila Silva',
-    clienteWhatsapp: '19987654321',
-    descricaoItens: 'Kit Presente Men + Gloss',
-    valor: 77.00,
-    dataVencimento: new Date().toISOString().split('T')[0], // Hoje
-    status: 'PENDENTE',
-    formaPagamento: 'PRAZO',
-    numeroParcela: 1,
-    totalParcelas: 1,
-    itensDetalhados: [
-      { produtoId: '3', nome: 'Kit Presente Men Gel + Pomada', quantidade: 1, precoUnitario: 55.00, subtotal: 55.00 },
-      { produtoId: '2', nome: 'Gloss Labial Love Volume', quantidade: 1, precoUnitario: 22.00, subtotal: 22.00 }
-    ]
-  },
-  {
-    id: 'cob-3',
-    vendaId: 'v-103',
-    clienteNome: 'Beatriz Oliveira',
-    clienteWhatsapp: '19981234567',
-    descricaoItens: 'Esfoliante Facial Rosa Mosqueta',
-    valor: 28.00,
-    dataVencimento: new Date().toISOString().split('T')[0], // Hoje
-    status: 'PENDENTE',
-    formaPagamento: 'PRAZO',
-    numeroParcela: 1,
-    totalParcelas: 1,
-    itensDetalhados: [
-      { produtoId: '1', nome: 'Esfoliante Facial Rosa Mosqueta', quantidade: 1, precoUnitario: 28.00, subtotal: 28.00 }
-    ]
-  },
-  {
-    id: 'cob-4',
-    vendaId: 'v-104',
-    clienteNome: 'Ana Paula Diniz',
-    clienteWhatsapp: '19992345678',
-    descricaoItens: 'Kit Skincare La Belle',
-    valor: 65.00,
-    dataVencimento: '2026-11-20',
-    status: 'PENDENTE',
-    formaPagamento: 'PRAZO',
-    numeroParcela: 1,
-    totalParcelas: 1,
-    itensDetalhados: [
-      { produtoId: '6', nome: 'Kit Skincare La Belle Mosquet', quantidade: 1, precoUnitario: 65.00, subtotal: 65.00 }
-    ]
-  }
-];
+export const INITIAL_COBRANCAS: Cobranca[] = [];
 
 export const storage = {
   getConfig: (): ConfiguracoesLoja => {

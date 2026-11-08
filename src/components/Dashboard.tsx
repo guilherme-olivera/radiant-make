@@ -47,11 +47,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return p.alertaEstoqueBaixo !== false && p.estoque <= limite;
   });
 
-  // Cálculos financeiros
-  const totalVendido = vendas.reduce((acc, v) => acc + v.total, 0) + 2450; // Base inicial
+  // Cálculos financeiros reais (sem dados fictícios)
+  const totalVendido = vendas.reduce((acc, v) => acc + v.total, 0);
   const totalRecebido = vendas
     .filter(v => v.formaPagamento !== 'PRAZO' || v.statusCobranca === 'PAGO')
-    .reduce((acc, v) => acc + v.total, 0) + 1620;
+    .reduce((acc, v) => acc + v.total, 0);
 
   const totalAReceber = cobrancas
     .filter(c => c.status !== 'PAGO')
@@ -81,7 +81,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {formatCurrency(totalVendido)}
           </span>
           <span className="text-xs text-emerald-400 font-medium flex items-center">
-            <ArrowUpRight className="w-3 h-3" /> {vendas.length + 18} vendas
+            <ArrowUpRight className="w-3 h-3" /> {vendas.length} {vendas.length === 1 ? 'venda' : 'vendas'}
           </span>
         </div>
 
