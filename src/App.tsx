@@ -1,0 +1,268 @@
+import React, { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import { BottomNav, TabType } from './components/BottomNav';
+import { Dashboard } from './components/Dashboard';
+import { NovaVenda } from './components/NovaVenda';
+import { Cobrancas } from './components/Cobrancas';
+import { Catalogo } from './components/Catalogo';
+import { Relatorios } from './components/Relatorios';
+import { Configuracoes } from './components/Configuracoes';
+import { storage } from './services/storage';
+import { syncService } from './services/sync';
+import { Cliente, Produto, Venda, Cobranca, ConfiguracoesLoja, Categoria, Marca } from './types';
+
+export const App: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
+
+  // Estados principais
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [vendas, setVendas] = useState<Venda[]>([]);
+  const [cobrancas, setCobrancas] = useState<Cobranca[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
+  const [config, setConfig] = useState<ConfiguracoesLoja>(storage.getConfig());
+
+  // Recarregar todos os dados do LocalStorage
+  const recarregarDados = () => {
+    setClientes(storage.getClientes());
+    setProdutos(storage.getProdutos());
+    setVendas(storage.getVendas());
+    setCobrancas(storage.getCobrancas());
+    setCategorias(storage.getCategorias());
+    setMarcas(storage.getMarcas());
+    setConfig(storage.getConfig());
+  };
+
+  // Carregar dados na inicialização e sincronizar com Supabase
+  useEffect(() => {
+    recarregarDados();
+
+    if (syncService.isConfigured() && navigator.onLine) {
+      syncService.sincronizarTudo().then(res => {
+        if (res.sucesso) {
+          recarregarDados();
+        }
+      });
+    }
+  }, []);
+
+  // Sincronização manual acionada pelo usuário
+  const handleSincronizarNuvem = async () => {
+    const res = await syncService.sincronizarTudo();
+    if (res.sucesso) {
+      recarregarDados();
+    }
+    return res;
+  };
+
+  // Sincronização em background após mutações
+  const dispararSyncBackground = () => {
+    if (syncService.isConfigured() && navigator.onLine) {
+      syncService.enviarParaNuvem().catch(() => {});
+    }
+  };
+
+  // Handlers de Venda e Clientes
+  const handleSalvarVenda = (novaVenda: Venda) => {
+    storage.saveVenda(novaVenda);
+    setVendas(storage.getVendas());
+    setProdutos(storage.getProdutos());
+    setCobrancas(storage.getCobrancas());
+    dispararSyncBackground();
+  };
+
+  const handleExcluirVenda = (id: string) => {
+    const atualizadas = vendas.filter(v => v.id !== id);
+    setVendas(atualizadas);
+    localStorage.setItem('radiant_vendas', JSON.stringify(atualizadas));
+    dispararSyncBackground();
+  };
+
+  const handleCadastrarCliente = (novoCliente: Cliente) => {
+    const atualizados = [novoCliente, ...clientes];
+    setClientes(atualizados);
+    storage.saveClientes(atualizados);
+    dispararSyncBackground();
+  };
+
+  // Handlers de Produtos & Estoque
+  const handleAdicionarProduto = (novoProduto: Produto) => {
+    const atualizados = [novoProduto, ...produtos];
+    setProdutos(atualizados);
+    storage.saveProdutos(atualizados);
+    dispararSyncBackground();
+  };
+
+  const handleAtualizarProduto = (produtoAtualizado: Produto) => {
+    storage.atualizarProduto(produtoAtualizado);
+    setProdutos(storage.getProdutos());
+    dispararSyncBackground();
+  };
+
+  const handleAbastecerProduto = (
+    id: string,
+    quantidade: number,
+    novoCusto: number,
+    novoPrecoVenda?: number
+  ) => {
+    storage.abastecerProduto(id, quantidade, novoCusto, novoPrecoVenda);
+    setProdutos(storage.getProdutos());
+    dispararSyncBackground();
+  };
+
+  const handleExcluirProduto = (id: string) => {
+    storage.excluirProduto(id);
+    setProdutos(storage.getProdutos());
+    dispararSyncBackground();
+  };
+
+  const handleAlternarStatusProduto = (id: string) => {
+    storage.alternarStatusProduto(id);
+    setProdutos(storage.getProdutos());
+    dispararSyncBackground();
+  };
+
+  // Handlers de Categorias e Marcas
+  const handleSalvarCategorias = (novasCategorias: Categoria[]) => {
+    storage.saveCategorias(novasCategorias);
+    setCategorias(novasCategorias);
+    dispararSyncBackground();
+  };
+
+  const handleSalvarMarcas = (novasMarcas: Marca[]) => {
+    storage.saveMarcas(novasMarcas);
+    setMarcas(novasMarcas);
+    dispararSyncBackground();
+  };
+
+  // Handlers de Cobranças
+  const handleDarBaixaCobranca = (id: string) => {
+    storage.darBaixaCobranca(id);
+    setCobrancas(storage.getCobrancas());
+    dispararSyncBackground();
+  };
+
+  const handleAtualizarVencimento = (id: string, novaData: string) => {
+    storage.atualizarDataVencimentoCobranca(id, novaData);
+    setCobrancas(storage.getCobrancas());
+    dispararSyncBackground();
+  };
+
+  // Handler de Config
+  const handleSalvarConfig = (novaConfig: ConfiguracoesLoja) => {
+    storage.saveConfig(novaConfig);
+    setConfig(novaConfig);
+    dispararSyncBackground();
+  };
+
+  const hoje = new Date().toISOString().split('T')[0];
+  const pendentesHojeCount = cobrancas.filter(c => c.status !== 'PAGO' && c.dataVencimento <= hoje).length;
+
+  return (
+    <div className="bg-stone-900 text-stone-800 flex justify-center items-center min-h-screen p-0 sm:p-4">
+      {/* Container simulando tela de smartphone ou PWA */}
+      <div className="w-full max-w-md h-[100vh] sm:h-[880px] bg-radiant-50 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col border sm:border-stone-800 relative">
+        {/* Top Header */}
+        <Header
+          onOpenCobrancas={() => setCurrentTab('cobrancas')}
+          onOpenConfig={() => setCurrentTab('config')}
+          onOpenRelatorios={() => setCurrentTab('relatorios')}
+          pendentesHojeCount={pendentesHojeCount}
+        />
+
+        {/* Área de Conteúdo */}
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 p-4">
+          {currentTab === 'dashboard' && (
+            <Dashboard
+              vendas={vendas}
+              cobrancas={cobrancas}
+              clientes={clientes}
+              produtos={produtos}
+              config={config}
+              onNovaVenda={() => setCurrentTab('venda')}
+              onVerCobrancas={() => setCurrentTab('cobrancas')}
+              onAbrirCampanhas={() => setCurrentTab('config')}
+              onAbrirCatalogo={() => setCurrentTab('catalogo')}
+              onAbrirRelatorios={() => setCurrentTab('relatorios')}
+            />
+          )}
+
+          {currentTab === 'venda' && (
+            <NovaVenda
+              clientes={clientes}
+              produtos={produtos}
+              config={config}
+              onSalvarVenda={handleSalvarVenda}
+              onCadastrarCliente={handleCadastrarCliente}
+              onVoltar={() => setCurrentTab('dashboard')}
+            />
+          )}
+
+          {currentTab === 'cobrancas' && (
+            <Cobrancas
+              cobrancas={cobrancas}
+              config={config}
+              onDarBaixa={handleDarBaixaCobranca}
+              onAtualizarVencimento={handleAtualizarVencimento}
+            />
+          )}
+
+          {currentTab === 'catalogo' && (
+            <Catalogo
+              produtos={produtos}
+              categorias={categorias}
+              marcas={marcas}
+              onAdicionarProduto={handleAdicionarProduto}
+              onAtualizarProduto={handleAtualizarProduto}
+              onAdicionarCategoria={novaCat => {
+                const updated = [...categorias, novaCat];
+                handleSalvarCategorias(updated);
+              }}
+              onAdicionarMarca={novaM => {
+                const updated = [...marcas, novaM];
+                handleSalvarMarcas(updated);
+              }}
+              onAbastecerProduto={handleAbastecerProduto}
+              onExcluirProduto={handleExcluirProduto}
+              onAlternarStatusProduto={handleAlternarStatusProduto}
+              onAbrirConfiguracoes={() => setCurrentTab('config')}
+            />
+          )}
+
+          {currentTab === 'relatorios' && (
+            <Relatorios
+              vendas={vendas}
+              produtos={produtos}
+              config={config}
+              onExcluirVenda={handleExcluirVenda}
+            />
+          )}
+
+          {currentTab === 'config' && (
+            <Configuracoes
+              config={config}
+              categorias={categorias}
+              marcas={marcas}
+              clientes={clientes}
+              onSalvarConfig={handleSalvarConfig}
+              onSalvarCategorias={handleSalvarCategorias}
+              onSalvarMarcas={handleSalvarMarcas}
+              onVoltar={() => setCurrentTab('dashboard')}
+              onSincronizarNuvem={handleSincronizarNuvem}
+            />
+          )}
+        </main>
+
+        {/* Bottom Nav Bar */}
+        <BottomNav
+          currentTab={currentTab}
+          onChangeTab={tab => setCurrentTab(tab)}
+          cobrancasAlertCount={pendentesHojeCount}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default App;

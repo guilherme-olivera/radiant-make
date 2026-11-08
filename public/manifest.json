@@ -1,0 +1,19 @@
+{
+  "name": "Radiant Make — Gestão & Cobrança",
+  "short_name": "Radiant Make",
+  "description": "Sistema de Gestão e Cobrança Express para Cosméticos e Maquiagens",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff5f7",
+  "theme_color": "#e84a75",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%23e84a75'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='260'>✨</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
