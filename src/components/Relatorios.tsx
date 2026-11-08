@@ -51,6 +51,7 @@ export const Relatorios: React.FC<RelatoriosProps> = ({
   });
   const lucroEstimado = faturamento - custoTotal;
   const ticketMedio = vendasFiltradas.length > 0 ? faturamento / vendasFiltradas.length : 0;
+  const totalDescontosConcedidos = vendasFiltradas.reduce((acc, v) => acc + (v.desconto || 0), 0);
 
   // Ranking de Produtos mais vendidos
   const rankingMap: { [nome: string]: { quantidade: number; total: number; emoji?: string } } = {};
@@ -92,18 +93,23 @@ export const Relatorios: React.FC<RelatoriosProps> = ({
       return;
     }
 
-    const headers = ['ID Pedido', 'Data', 'Cliente', 'WhatsApp', 'Itens', 'Total (R$)', 'Pagamento', 'Vencimento', 'Status'];
-    const rows = vendasFiltradas.map(v => [
-      v.id,
-      new Date(v.data).toLocaleDateString('pt-BR'),
-      `"${v.clienteNome}"`,
-      v.clienteWhatsapp,
-      `"${v.itens.map(i => `${i.quantidade}x ${i.nome}`).join('; ')}"`,
-      v.total.toFixed(2).replace('.', ','),
-      v.formaPagamento,
-      v.dataVencimento ? formatDateBR(v.dataVencimento) : 'À Vista',
-      v.statusCobranca,
-    ]);
+    const headers = ['ID Pedido', 'Data', 'Cliente', 'WhatsApp', 'Itens', 'Subtotal (R$)', 'Desconto (R$)', 'Total (R$)', 'Pagamento', 'Vencimento', 'Status'];
+    const rows = vendasFiltradas.map(v => {
+      const sub = v.subtotal || (v.total + (v.desconto || 0));
+      return [
+        v.id,
+        new Date(v.data).toLocaleDateString('pt-BR'),
+        `"${v.clienteNome}"`,
+        v.clienteWhatsapp,
+        `"${v.itens.map(i => `${i.quantidade}x ${i.nome}`).join('; ')}"`,
+        sub.toFixed(2).replace('.', ','),
+        (v.desconto || 0).toFixed(2).replace('.', ','),
+        v.total.toFixed(2).replace('.', ','),
+        v.formaPagamento,
+        v.dataVencimento ? formatDateBR(v.dataVencimento) : 'À Vista',
+        v.statusCobranca,
+      ];
+    });
 
     const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -264,6 +270,11 @@ export const Relatorios: React.FC<RelatoriosProps> = ({
 
                   <div className="text-right">
                     <p className="font-extrabold text-stone-900">{formatCurrency(v.total)}</p>
+                    {v.desconto && v.desconto > 0 && (
+                      <p className="text-[10px] text-emerald-600 font-bold">
+                        Desc: -{formatCurrency(v.desconto)}
+                      </p>
+                    )}
                     <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
                       v.formaPagamento === 'PRAZO'
                         ? 'bg-amber-100 text-amber-800'

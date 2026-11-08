@@ -90,3 +90,4 @@ export const biometriaService = {
     localStorage.removeItem('radiant_biometria_ativa');
   },
 };
+

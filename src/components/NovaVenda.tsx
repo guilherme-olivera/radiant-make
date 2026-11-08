@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, UserPlus, Plus, Minus, Check, Calendar, MessageCircle, Sparkles, Tag, Heart } from 'lucide-react';
+import { Search, UserPlus, Plus, Minus, Check, Calendar, MessageCircle, Sparkles, Tag, Heart, X, Percent, Gift } from 'lucide-react';
 import { Cliente, Produto, ItemVenda, FormaPagamento, Venda, ConfiguracoesLoja, GeneroCliente } from '../types';
 import { formatCurrency, formatDateBR, cleanPhone, extrairPrimeiroNome } from '../utils/whatsapp';
 
@@ -45,6 +45,11 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
   const [avulsoNome, setAvulsoNome] = useState('');
   const [avulsoPreco, setAvulsoPreco] = useState('');
   const [itensAvulsos, setItensAvulsos] = useState<ItemVenda[]>([]);
+
+  // Estados de Desconto
+  const [tipoDesconto, setTipoDesconto] = useState<'VALOR' | 'PORCENTAGEM'>('VALOR');
+  const [valorDesconto, setValorDesconto] = useState<number>(0);
+  const [inputDesconto, setInputDesconto] = useState<string>('');
 
   // Condição de Pagamento
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>('PRAZO');
@@ -121,7 +126,26 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
   });
 
   const todosItens = [...itensProdutos, ...itensAvulsos];
-  const totalGeral = todosItens.reduce((acc, i) => acc + i.subtotal, 0);
+  const subtotalGeral = todosItens.reduce((acc, i) => acc + i.subtotal, 0);
+
+  // Checagem se cliente selecionada faz aniversário no mês corrente
+  const mesAtual = String(new Date().getMonth() + 1).padStart(2, '0');
+  const clienteEhAniversariante = Boolean(
+    clienteSelecionado?.dataNascimento && (
+      clienteSelecionado.dataNascimento.includes(`-${mesAtual}-`) ||
+      clienteSelecionado.dataNascimento.endsWith(`-${mesAtual}`)
+    )
+  );
+
+  // Cálculo do Desconto
+  let descontoCalculado = 0;
+  if (tipoDesconto === 'VALOR') {
+    descontoCalculado = Math.min(valorDesconto, subtotalGeral);
+  } else {
+    descontoCalculado = Math.min(Number(((subtotalGeral * valorDesconto) / 100).toFixed(2)), subtotalGeral);
+  }
+
+  const totalGeral = Math.max(0, Number((subtotalGeral - descontoCalculado).toFixed(2)));
   const valorParcela = totalGeral > 0 ? (totalGeral / quantidadeParcelas) : 0;
 
   // Ação Adicionar Item Avulso
@@ -185,6 +209,8 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
       clienteWhatsapp: clienteSelecionado.whatsapp,
       data: new Date().toISOString(),
       itens: todosItens,
+      subtotal: subtotalGeral,
+      desconto: descontoCalculado,
       total: totalGeral,
       formaPagamento,
       quantidadeParcelas: formaPagamento === 'PRAZO' ? quantidadeParcelas : 1,
@@ -203,7 +229,16 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
     const itensTexto = vendaConcluida.itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ');
     const phone = cleanPhone(vendaConcluida.clienteWhatsapp);
 
-    let texto = `Oi, ${primeiroNome}! ✨ Muito obrigada pela sua compra na Radiant Make! 💖\n\n🛍️ *Resumo do Pedido #${vendaConcluida.id}:*\n${itensTexto}\n💰 *Total:* ${formatCurrency(vendaConcluida.total)}`;
+    let texto = `Oi, ${primeiroNome}! ✨ Muito obrigada pela sua compra na Radiant Make! 💖\n\n🛍️ *Resumo do Pedido #${vendaConcluida.id}:*\n${itensTexto}`;
+
+    if (vendaConcluida.desconto && vendaConcluida.desconto > 0) {
+      const sub = vendaConcluida.subtotal || (vendaConcluida.total + vendaConcluida.desconto);
+      texto += `\n\n🏷️ *Subtotal:* ${formatCurrency(sub)}`;
+      texto += `\n🎁 *Desconto Especial:* - ${formatCurrency(vendaConcluida.desconto)}`;
+      texto += `\n💰 *Total com Desconto:* ${formatCurrency(vendaConcluida.total)}`;
+    } else {
+      texto += `\n💰 *Total:* ${formatCurrency(vendaConcluida.total)}`;
+    }
 
     if (vendaConcluida.formaPagamento === 'PRAZO' && vendaConcluida.dataVencimento) {
       const qParcelas = vendaConcluida.quantidadeParcelas || 1;
@@ -492,20 +527,204 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
           </div>
         )}
 
-        {/* Resumo do Total */}
+        {/* Resumo do Subtotal dos Produtos */}
         <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between">
           <span className="text-xs font-medium text-stone-500">
-            Total ({todosItens.reduce((acc, i) => acc + i.quantidade, 0)} itens):
+            Subtotal ({todosItens.reduce((acc, i) => acc + i.quantidade, 0)} itens):
           </span>
-          <span className="font-extrabold text-lg text-stone-900">
-            {formatCurrency(totalGeral)}
+          <span className="font-extrabold text-base text-stone-800">
+            {formatCurrency(subtotalGeral)}
           </span>
         </div>
       </div>
 
-      {/* 3. FORMA DE PAGAMENTO */}
+      {/* 3. DESCONTO ESPECIAL (OPCIONAL) */}
       <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-3">
-        <label className="text-xs font-bold text-stone-800">3. Como a cliente vai pagar?</label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+            <Tag className="w-4 h-4 text-radiant-pink" />
+            3. Desconto Especial (Opcional)
+          </label>
+          {descontoCalculado > 0 && (
+            <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              - {formatCurrency(descontoCalculado)} OFF
+            </span>
+          )}
+        </div>
+
+        {/* Banner de Aniversariante se aplicável */}
+        {clienteEhAniversariante && (
+          <div className="p-2.5 rounded-2xl bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 border border-rose-200 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🎂</span>
+              <div>
+                <p className="font-bold text-radiant-pink">Cliente Aniversariante do Mês!</p>
+                <p className="text-[10px] text-stone-500">Cupom padrão: {config.cupomAniversarioPadrao || 'NIVER10'} (10% OFF)</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTipoDesconto('PORCENTAGEM');
+                setValorDesconto(10);
+                setInputDesconto('10');
+              }}
+              className="bg-radiant-pink hover:bg-rose-600 active:scale-95 text-white font-extrabold px-3 py-1.5 rounded-xl text-[11px] shadow-sm transition"
+            >
+              Aplicar 10%
+            </button>
+          </div>
+        )}
+
+        {/* Seletor R$ em Reais ou % Porcentagem */}
+        <div className="flex gap-1.5 bg-stone-100 p-1 rounded-2xl text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => {
+              setTipoDesconto('VALOR');
+              setValorDesconto(0);
+              setInputDesconto('');
+            }}
+            className={`flex-1 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 ${
+              tipoDesconto === 'VALOR'
+                ? 'bg-white text-stone-900 shadow-xs font-extrabold'
+                : 'text-stone-500 hover:text-stone-800'
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5 text-radiant-pink" />
+            <span>R$ em Reais</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTipoDesconto('PORCENTAGEM');
+              setValorDesconto(0);
+              setInputDesconto('');
+            }}
+            className={`flex-1 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 ${
+              tipoDesconto === 'PORCENTAGEM'
+                ? 'bg-white text-stone-900 shadow-xs font-extrabold'
+                : 'text-stone-500 hover:text-stone-800'
+            }`}
+          >
+            <Percent className="w-3.5 h-3.5 text-emerald-600" />
+            <span>% Porcentagem</span>
+          </button>
+        </div>
+
+        {/* Atalhos Rápidos de 1 Toque */}
+        <div className="grid grid-cols-4 gap-1.5 text-xs">
+          {tipoDesconto === 'VALOR' ? (
+            <>
+              {[5, 10, 15, 20].map(val => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => {
+                    setValorDesconto(val);
+                    setInputDesconto(String(val));
+                  }}
+                  className={`py-2 rounded-xl border text-center font-bold transition active:scale-95 ${
+                    valorDesconto === val
+                      ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
+                      : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                  }`}
+                >
+                  R$ {val}
+                </button>
+              ))}
+            </>
+          ) : (
+            <>
+              {[5, 10, 15, 20].map(pct => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => {
+                    setValorDesconto(pct);
+                    setInputDesconto(String(pct));
+                  }}
+                  className={`py-2 rounded-xl border text-center font-bold transition active:scale-95 ${
+                    valorDesconto === pct
+                      ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
+                      : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                  }`}
+                >
+                  {pct}% OFF
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Campo de Valor Customizado */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-2.5 text-stone-400 font-bold text-xs">
+              {tipoDesconto === 'VALOR' ? 'R$' : '%'}
+            </span>
+            <input
+              type="text"
+              placeholder={tipoDesconto === 'VALOR' ? 'Digitar outro valor (ex: 8,50)' : 'Digitar outra porcentagem (ex: 12)'}
+              value={inputDesconto}
+              onChange={e => {
+                const valStr = e.target.value.replace(',', '.');
+                setInputDesconto(e.target.value);
+                const num = parseFloat(valStr);
+                if (!isNaN(num) && num >= 0) {
+                  setValorDesconto(num);
+                } else {
+                  setValorDesconto(0);
+                }
+              }}
+              className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 focus:outline-none focus:border-radiant-pink"
+            />
+          </div>
+
+          {valorDesconto > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setValorDesconto(0);
+                setInputDesconto('');
+              }}
+              className="p-2 text-stone-400 hover:text-rose-600 rounded-xl bg-stone-100 hover:bg-rose-50 transition border border-stone-200"
+              title="Remover Desconto"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Resumo Consolidado com Desconto */}
+        <div className="pt-2 border-t border-stone-100 space-y-1 text-xs">
+          <div className="flex justify-between items-center text-stone-500">
+            <span>Subtotal:</span>
+            <span className="font-semibold text-stone-700">{formatCurrency(subtotalGeral)}</span>
+          </div>
+
+          {descontoCalculado > 0 && (
+            <div className="flex justify-between items-center text-emerald-600 font-bold">
+              <span className="flex items-center gap-1">
+                <Tag className="w-3.5 h-3.5" />
+                Desconto Especial:
+              </span>
+              <span>- {formatCurrency(descontoCalculado)}</span>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-stone-200">
+            <span className="font-bold text-stone-800 text-sm">Total da Venda:</span>
+            <span className="font-black text-xl text-stone-900">
+              {formatCurrency(totalGeral)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. FORMA DE PAGAMENTO */}
+      <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-3">
+        <label className="text-xs font-bold text-stone-800">4. Como a cliente vai pagar?</label>
         
         <div className="grid grid-cols-2 gap-2 text-xs font-medium">
           <button
@@ -781,6 +1000,16 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
                 Envie o agradecimento para <b>{extrairPrimeiroNome(vendaConcluida.clienteNome)}</b> no WhatsApp:
               </p>
             </div>
+
+            {vendaConcluida.desconto && vendaConcluida.desconto > 0 && (
+              <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-2xl text-xs flex justify-between items-center text-emerald-800 font-bold">
+                <span className="flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                  Desconto Concedido:
+                </span>
+                <span>- {formatCurrency(vendaConcluida.desconto)}</span>
+              </div>
+            )}
 
             <div className="bg-stone-50 p-3 rounded-2xl border border-stone-200 text-left text-[11px] text-stone-700 space-y-1 font-mono">
               <p className="font-bold text-radiant-pink font-sans text-xs">Mensagem Pronta:</p>

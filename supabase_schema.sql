@@ -84,7 +84,9 @@ CREATE TABLE IF NOT EXISTS public.vendas (
     cliente_whatsapp TEXT NOT NULL,
     data TIMESTAMPTZ DEFAULT NOW(),
     itens JSONB NOT NULL, -- Array de ItemVenda [{produtoId, nome, quantidade, precoUnitario, subtotal}]
-    total NUMERIC(10, 2) NOT NULL,
+    subtotal NUMERIC(10, 2), -- Valor total dos itens antes do desconto
+    desconto NUMERIC(10, 2) DEFAULT 0.00, -- Valor do desconto concedido
+    total NUMERIC(10, 2) NOT NULL, -- Subtotal - Desconto
     forma_pagamento TEXT NOT NULL, -- 'PIX', 'DINHEIRO', 'CARTAO', 'PRAZO'
     quantidade_parcelas INTEGER DEFAULT 1,
     data_vencimento DATE,

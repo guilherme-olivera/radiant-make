@@ -42,7 +42,9 @@ export const gerarLinkWhatsAppAgradecimento = (
   total: number,
   config: ConfiguracoesLoja,
   dataVencimento?: string,
-  totalParcelas?: number
+  totalParcelas?: number,
+  desconto?: number,
+  subtotal?: number
 ): string => {
   const phone = cleanPhone(clienteWhatsapp);
   const primeiroNome = extrairPrimeiroNome(clienteNome);
@@ -52,6 +54,12 @@ export const gerarLinkWhatsAppAgradecimento = (
     .replace('{pedidoId}', pedidoId)
     .replace('{itens}', itensDescricao)
     .replace('{valor}', total.toFixed(2).replace('.', ','));
+
+  if (desconto && desconto > 0) {
+    const descFormatado = desconto.toFixed(2).replace('.', ',');
+    const subFormatado = subtotal ? subtotal.toFixed(2).replace('.', ',') : (total + desconto).toFixed(2).replace('.', ',');
+    texto += `\n\n🏷️ *Subtotal:* R$ ${subFormatado}\n🎁 *Desconto Especial:* - R$ ${descFormatado}\n💰 *Total com Desconto:* R$ ${total.toFixed(2).replace('.', ',')}`;
+  }
 
   if (dataVencimento) {
     const infoParcelas = totalParcelas && totalParcelas > 1 ? ` (${totalParcelas}x)` : '';

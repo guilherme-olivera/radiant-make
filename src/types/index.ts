@@ -58,7 +58,9 @@ export interface Venda {
   clienteWhatsapp: string;
   data: string; // ISO date
   itens: ItemVenda[];
-  total: number;
+  subtotal?: number; // Valor bruto dos itens somados
+  desconto?: number; // Valor do desconto concedido em R$
+  total: number; // Subtotal - Desconto
   formaPagamento: FormaPagamento;
   quantidadeParcelas?: number; // 1, 2, 3
   dataVencimento?: string; // Se a prazo (1ª parcela)
