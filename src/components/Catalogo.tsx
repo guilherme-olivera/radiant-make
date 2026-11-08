@@ -386,13 +386,8 @@ export const Catalogo: React.FC<CatalogoProps> = ({
                     ) : (
                       <span>{p.emoji || '💄'}</span>
                     )}
-                    {p.marca && (
-                      <span className="absolute bottom-1.5 left-1.5 bg-white/90 backdrop-blur-sm text-stone-800 text-[9px] font-bold px-2 py-0.5 rounded-md shadow-xs">
-                        {p.marca}
-                      </span>
-                    )}
 
-                    {/* Botão de Abastecimento Rápido */}
+                    {/* Botão de Abastecimento Rápido no topo da foto */}
                     <button
                       type="button"
                       onClick={(e) => abrirModalAbastecer(p, e)}
@@ -403,9 +398,16 @@ export const Catalogo: React.FC<CatalogoProps> = ({
                     </button>
                   </div>
 
-                  <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider block">
-                    {p.categoria}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                    <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                      {p.categoria}
+                    </span>
+                    {p.marca && (
+                      <span className="text-[9px] bg-stone-100 text-stone-600 font-bold px-1.5 py-0.2 rounded-md max-w-[90px] truncate">
+                        {p.marca}
+                      </span>
+                    )}
+                  </div>
                   <p className="font-bold text-stone-900 leading-tight mt-0.5 line-clamp-2">
                     {p.nome}
                   </p>
@@ -427,7 +429,7 @@ export const Catalogo: React.FC<CatalogoProps> = ({
 
                     <span
                       title={estoqueBaixo ? `Alerta! Estoque atingiu o limite de ${limite} un` : 'Estoque regular'}
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5 ${
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5 shrink-0 ${
                         estoqueBaixo
                           ? 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'
                           : 'bg-emerald-100 text-emerald-800'
@@ -438,52 +440,47 @@ export const Catalogo: React.FC<CatalogoProps> = ({
                     </span>
                   </div>
 
-                  {/* Barra de Ações: Abastecer + Editar + Arquivar / Excluir */}
-                  <div className="flex items-center justify-between pt-1 text-[11px]">
+                  {/* Barra de Ações Rápidas: 4 botões proporcionais e simétricos */}
+                  <div className="flex items-center justify-between pt-1">
                     <button
                       type="button"
                       onClick={(e) => abrirModalAbastecer(p, e)}
-                      className="text-radiant-pink font-bold hover:underline flex items-center gap-0.5"
+                      title="Abastecer Estoque (+ un)"
+                      className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 active:scale-90 text-radiant-pink flex items-center justify-center transition border border-rose-200/60 shadow-2xs"
                     >
-                      <PackagePlus className="w-3 h-3" />
-                      + Abastecer
+                      <PackagePlus className="w-3.5 h-3.5" />
                     </button>
 
-                    <div className="flex items-center gap-1">
-                      {/* Editar dados do produto (Nome, Foto, Preço, etc.) */}
-                      <button
-                        type="button"
-                        onClick={(e) => abrirModalEditar(p, e)}
-                        title="Editar produto (Nome, Foto, Preço)"
-                        className="text-stone-400 hover:text-radiant-pink p-1 transition"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
+                    <button
+                      type="button"
+                      onClick={(e) => abrirModalEditar(p, e)}
+                      title="Editar dados (Preço, Foto, Nome)"
+                      className="w-7 h-7 rounded-lg bg-stone-50 hover:bg-rose-50 active:scale-90 text-stone-500 hover:text-radiant-pink flex items-center justify-center transition border border-stone-200/60"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
 
-                      {/* Arquivar / Reativar */}
-                      <button
-                        type="button"
-                        onClick={() => onAlternarStatusProduto(p.id)}
-                        title={p.ativo === false ? 'Reativar produto' : 'Desativar / Arquivar produto'}
-                        className="text-stone-400 hover:text-stone-700 p-1 transition"
-                      >
-                        <Archive className="w-3.5 h-3.5" />
-                      </button>
+                    <button
+                      type="button"
+                      onClick={() => onAlternarStatusProduto(p.id)}
+                      title={p.ativo === false ? 'Reativar produto' : 'Desativar / Arquivar produto'}
+                      className="w-7 h-7 rounded-lg bg-stone-50 hover:bg-stone-100 active:scale-90 text-stone-500 hover:text-stone-800 flex items-center justify-center transition border border-stone-200/60"
+                    >
+                      <Archive className="w-3.5 h-3.5" />
+                    </button>
 
-                      {/* Excluir em definitivo */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`Deseja realmente excluir o produto "${p.nome}" do catálogo?`)) {
-                            onExcluirProduto(p.id);
-                          }
-                        }}
-                        title="Excluir permanentemente"
-                        className="text-stone-300 hover:text-rose-500 p-1 transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Deseja realmente excluir o produto "${p.nome}" do catálogo?`)) {
+                          onExcluirProduto(p.id);
+                        }
+                      }}
+                      title="Excluir produto"
+                      className="w-7 h-7 rounded-lg bg-stone-50 hover:bg-rose-50 active:scale-90 text-stone-400 hover:text-rose-600 flex items-center justify-center transition border border-stone-200/60"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>

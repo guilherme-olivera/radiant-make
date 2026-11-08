@@ -187,7 +187,7 @@ export const App: React.FC = () => {
   return (
     <div className="bg-stone-900 text-stone-800 flex justify-center items-center min-h-screen p-0 sm:p-4">
       {/* Container simulando tela de smartphone ou PWA */}
-      <div className="w-full max-w-md h-[100vh] sm:h-[880px] bg-radiant-50 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col border sm:border-stone-800 relative">
+      <div className="w-full max-w-md h-[100dvh] min-h-[100dvh] sm:h-[880px] bg-radiant-50 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col border sm:border-stone-800 relative">
         {/* Top Header */}
         <Header
           onOpenCobrancas={() => setCurrentTab('cobrancas')}
@@ -198,7 +198,7 @@ export const App: React.FC = () => {
         />
 
         {/* Área de Conteúdo */}
-        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 p-4">
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-32 p-4">
           {currentTab === 'dashboard' && (
             <Dashboard
               vendas={vendas}

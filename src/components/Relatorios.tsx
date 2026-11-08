@@ -257,25 +257,25 @@ export const Relatorios: React.FC<RelatoriosProps> = ({
           <div className="space-y-2.5">
             {vendasFiltradas.map(v => (
               <div key={v.id} className="p-3 rounded-2xl bg-stone-50/70 border border-stone-200/80 text-xs space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-1.5">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-extrabold text-stone-900">{v.clienteNome}</span>
                       <span className="text-[9px] text-stone-400">#{v.id}</span>
                     </div>
-                    <p className="text-[11px] text-stone-500 mt-0.5">
+                    <p className="text-[11px] text-stone-500 mt-0.5 line-clamp-2">
                       {v.itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ')}
                     </p>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="font-extrabold text-stone-900">{formatCurrency(v.total)}</p>
                     {v.desconto && v.desconto > 0 && (
                       <p className="text-[10px] text-emerald-600 font-bold">
                         Desc: -{formatCurrency(v.desconto)}
                       </p>
                     )}
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold inline-block mt-0.5 ${
                       v.formaPagamento === 'PRAZO'
                         ? 'bg-amber-100 text-amber-800'
                         : 'bg-emerald-100 text-emerald-800'

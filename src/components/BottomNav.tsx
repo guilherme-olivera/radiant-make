@@ -15,7 +15,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   cobrancasAlertCount,
 }) => {
   return (
-    <nav className="fixed sm:absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200/80 py-2 px-6 flex justify-between items-center z-30 max-w-md mx-auto">
+    <nav className="fixed sm:absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200/80 pt-2 pb-5 sm:pb-2 px-6 flex justify-between items-center z-30 max-w-md mx-auto">
       {/* Início */}
       <button
         onClick={() => onChangeTab('dashboard')}
