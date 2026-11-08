@@ -117,8 +117,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSucesso }) => {
         
         {/* Cabeçalho */}
         <div className="text-center pt-6 space-y-2">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-radiant-pink to-rose-400 mx-auto flex items-center justify-center text-white shadow-lg shadow-radiant-pink/30">
-            <Sparkles className="w-8 h-8 fill-white" />
+          <div className="w-20 h-20 rounded-full bg-white p-1 mx-auto flex items-center justify-center shadow-xl shadow-radiant-pink/20 border-2 border-rose-200 overflow-hidden">
+            <img
+              src="/logo.jpg"
+              alt="Logo Radiant Make"
+              className="w-full h-full object-cover rounded-full"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-black text-stone-900 tracking-tight">Radiant Make</h1>

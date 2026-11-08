@@ -19,8 +19,16 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="bg-gradient-to-r from-radiant-pink to-rose-400 text-white px-4 pt-8 pb-3.5 shadow-md flex justify-between items-center z-20 sticky top-0">
       <div className="flex items-center space-x-2.5 min-w-0 flex-1 pr-2">
-        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-radiant-pink font-bold shadow-md text-base shrink-0">
-          <Sparkles className="w-4.5 h-4.5 text-radiant-pink fill-radiant-pink" />
+        <div className="w-10 h-10 rounded-full bg-white p-0.5 flex items-center justify-center shadow-md shrink-0 overflow-hidden border border-white/60">
+          <img
+            src="/logo.jpg"
+            alt="Logo Radiant Make"
+            className="w-full h-full object-cover rounded-full"
+            onError={e => {
+              // Fallback se imagem falhar
+              e.currentTarget.style.display = 'none';
+            }}
+          />
         </div>
         <div className="min-w-0">
           <h1 className="text-base font-extrabold tracking-tight truncate">Radiant Make</h1>
