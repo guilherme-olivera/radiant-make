@@ -1,10 +1,11 @@
 import React from 'react';
-import { Bell, Sparkles, Settings, BarChart3 } from 'lucide-react';
+import { Bell, Sparkles, Settings, BarChart3, Lock } from 'lucide-react';
 
 interface HeaderProps {
   onOpenCobrancas: () => void;
   onOpenConfig: () => void;
   onOpenRelatorios?: () => void;
+  onBloquear?: () => void;
   pendentesHojeCount: number;
 }
 
@@ -12,6 +13,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCobrancas,
   onOpenConfig,
   onOpenRelatorios,
+  onBloquear,
   pendentesHojeCount,
 }) => {
   return (
@@ -58,6 +60,16 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-300 rounded-full border-2 border-radiant-pink animate-pulse" />
           )}
         </button>
+
+        {onBloquear && (
+          <button
+            onClick={onBloquear}
+            title="Bloquear App (PIN)"
+            className="p-2 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition text-rose-100 hover:text-white"
+          >
+            <Lock className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </header>
   );

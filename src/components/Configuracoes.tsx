@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Settings, Save, Check, RefreshCw, MessageCircle, Heart, Tag, Layers, Users, Gift, Plus, Trash2, Send, Cloud, Smartphone, Database, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, Save, Check, RefreshCw, MessageCircle, Heart, Tag, Layers, Users, Gift, Plus, Trash2, Send, Cloud, Smartphone, Database, CheckCircle2, Lock, Fingerprint, KeyRound, ShieldCheck } from 'lucide-react';
 import { ConfiguracoesLoja, Categoria, Marca, Cliente } from '../types';
 import { INITIAL_CONFIG } from '../services/storage';
 import { cleanPhone, formatCurrency, extrairPrimeiroNome } from '../utils/whatsapp';
+import { biometriaService } from '../utils/biometria';
 
 interface ConfiguracoesProps {
   config: ConfiguracoesLoja;
@@ -14,6 +15,7 @@ interface ConfiguracoesProps {
   onSalvarMarcas: (marcas: Marca[]) => void;
   onVoltar: () => void;
   onSincronizarNuvem?: () => Promise<{ sucesso: boolean; mensagem: string }>;
+  onBloquear?: () => void;
 }
 
 export const Configuracoes: React.FC<ConfiguracoesProps> = ({
@@ -26,10 +28,74 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
   onSalvarMarcas,
   onVoltar,
   onSincronizarNuvem,
+  onBloquear,
 }) => {
-  const [tabConfig, setTabConfig] = useState<'CAMPANHAS' | 'NUVEM' | 'CATEGORIAS' | 'MENSAGENS' | 'PIX'>('CAMPANHAS');
+  const [tabConfig, setTabConfig] = useState<'CAMPANHAS' | 'NUVEM' | 'SEGURANCA' | 'CATEGORIAS' | 'MENSAGENS' | 'PIX'>('CAMPANHAS');
   const [sincronizando, setSincronizando] = useState(false);
   const [msgSync, setMsgSync] = useState<string | null>(null);
+
+  // Estados de Segurança (PIN, Biometria, Senha Mestra)
+  const [biometriaDisponivel, setBiometriaDisponivel] = useState(false);
+  const [biometriaAtiva, setBiometriaAtiva] = useState(false);
+  const [novoPinForm, setNovoPinForm] = useState('');
+  const [msgPin, setMsgPin] = useState<string | null>(null);
+  const [novaSenhaMestraForm, setNovaSenhaMestraForm] = useState('');
+  const [senhaMestraAtualForm, setSenhaMestraAtualForm] = useState('');
+  const [msgSenhaMestra, setMsgSenhaMestra] = useState<string | null>(null);
+
+  useEffect(() => {
+    biometriaService.isDisponivel().then(disp => {
+      setBiometriaDisponivel(disp);
+      setBiometriaAtiva(biometriaService.isAtivada());
+    });
+  }, []);
+
+  const handleToggleBiometria = async () => {
+    if (biometriaAtiva) {
+      biometriaService.desativar();
+      setBiometriaAtiva(false);
+    } else {
+      const res = await biometriaService.ativar();
+      if (res.sucesso) {
+        setBiometriaAtiva(true);
+      } else {
+        alert(res.mensagem);
+      }
+    }
+  };
+
+  const handleSalvarNovoPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (novoPinForm.length === 4 && /^\d{4}$/.test(novoPinForm)) {
+      localStorage.setItem('radiant_pin_mestre', novoPinForm);
+      setMsgPin('PIN atualizado com sucesso!');
+      setNovoPinForm('');
+      setTimeout(() => setMsgPin(null), 3000);
+    } else {
+      setMsgPin('O PIN deve conter exatamente 4 números.');
+    }
+  };
+
+  const handleSalvarNovaSenhaMestra = (e: React.FormEvent) => {
+    e.preventDefault();
+    const senhaAtual = localStorage.getItem('radiant_senha_mestra') || 'Maraccini26@';
+
+    if (senhaMestraAtualForm !== senhaAtual) {
+      setMsgSenhaMestra('Senha atual incorreta.');
+      return;
+    }
+
+    if (novaSenhaMestraForm.length < 6) {
+      setMsgSenhaMestra('A nova senha mestra deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
+    localStorage.setItem('radiant_senha_mestra', novaSenhaMestraForm);
+    setMsgSenhaMestra('Senha mestra atualizada com sucesso!');
+    setNovaSenhaMestraForm('');
+    setSenhaMestraAtualForm('');
+    setTimeout(() => setMsgSenhaMestra(null), 3000);
+  };
 
   // Dados de Configuração
   const [formData, setFormData] = useState<ConfiguracoesLoja>(config);
@@ -186,7 +252,7 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
 
         <button
           onClick={() => setTabConfig('NUVEM')}
-          className={`flex-1 min-w-[76px] py-1.5 rounded-xl transition flex items-center justify-center gap-1 ${
+          className={`flex-1 min-w-[70px] py-1.5 rounded-xl transition flex items-center justify-center gap-1 ${
             tabConfig === 'NUVEM'
               ? 'bg-emerald-600 text-white shadow-sm font-extrabold'
               : 'hover:text-stone-900'
@@ -194,6 +260,18 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
         >
           <Cloud className="w-3.5 h-3.5" />
           Nuvem
+        </button>
+
+        <button
+          onClick={() => setTabConfig('SEGURANCA')}
+          className={`flex-1 min-w-[80px] py-1.5 rounded-xl transition flex items-center justify-center gap-1 ${
+            tabConfig === 'SEGURANCA'
+              ? 'bg-stone-900 text-white shadow-sm font-extrabold'
+              : 'hover:text-stone-900'
+          }`}
+        >
+          <Lock className="w-3.5 h-3.5 text-amber-300" />
+          Segurança
         </button>
 
         <button
@@ -539,6 +617,158 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ABA: SEGURANÇA, BIOMETRIA & SENHAS */}
+      {tabConfig === 'SEGURANCA' && (
+        <div className="space-y-4 text-xs">
+          {/* Header Card */}
+          <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white p-4 rounded-3xl shadow-md space-y-1.5 border border-stone-700">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-sm flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-amber-300" />
+                Segurança & Bloqueio do App
+              </h3>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
+                Ativo
+              </span>
+            </div>
+            <p className="text-[11px] text-stone-300">
+              Controle quem pode acessar o sistema da loja através de Biometria (Face ID/Digital), PIN de 4 dígitos e Senha Mestra.
+            </p>
+          </div>
+
+          {/* 1. Desbloqueio por Biometria / Celular */}
+          <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">
+                  <Fingerprint className="w-4 h-4 text-radiant-pink" />
+                  Desbloqueio com Biometria
+                </h4>
+                <p className="text-[11px] text-stone-400">
+                  {biometriaDisponivel
+                    ? 'Desbloqueie pelo Face ID, Touch ID ou Digital do celular'
+                    : 'Aparelho atual não possui leitor biométrico compatível'}
+                </p>
+              </div>
+
+              {biometriaDisponivel && (
+                <button
+                  type="button"
+                  onClick={handleToggleBiometria}
+                  className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition shadow-xs ${
+                    biometriaAtiva
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200'
+                  }`}
+                >
+                  {biometriaAtiva ? '✓ Ativada' : 'Ativar'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Alterar PIN de 4 Dígitos */}
+          <form onSubmit={handleSalvarNovoPin} className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-3">
+            <div>
+              <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">
+                <Lock className="w-4 h-4 text-radiant-pink" />
+                PIN de Acesso Rápido (4 dígitos)
+              </h4>
+              <p className="text-[11px] text-stone-400">
+                PIN atual padrão: <span className="font-mono font-bold text-stone-700">{localStorage.getItem('radiant_pin_mestre') || '2626'}</span>
+              </p>
+            </div>
+
+            {msgPin && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold">
+                {msgPin}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                type="password"
+                maxLength={4}
+                value={novoPinForm}
+                onChange={e => setNovoPinForm(e.target.value.replace(/\D/g, ''))}
+                placeholder="Novo PIN (ex: 1234)"
+                className="flex-1 bg-stone-50 border border-stone-200 rounded-xl p-2.5 font-bold tracking-widest text-center text-sm focus:outline-none focus:border-radiant-pink"
+              />
+              <button
+                type="submit"
+                className="bg-radiant-pink hover:bg-rose-600 active:scale-95 text-white font-bold px-4 rounded-xl shadow-xs transition"
+              >
+                Salvar PIN
+              </button>
+            </div>
+          </form>
+
+          {/* 3. Alterar Senha Mestra */}
+          <form onSubmit={handleSalvarNovaSenhaMestra} className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-3">
+            <div>
+              <h4 className="font-bold text-stone-900 flex items-center gap-1.5 text-xs">
+                <KeyRound className="w-4 h-4 text-amber-500" />
+                Senha Mestra de Administrador
+              </h4>
+              <p className="text-[11px] text-stone-400">
+                Usada para emergências ou caso você esqueça o PIN
+              </p>
+            </div>
+
+            {msgSenhaMestra && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold">
+                {msgSenhaMestra}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <div>
+                <label className="block text-stone-500 text-[10px] font-bold mb-0.5">Senha Mestra Atual</label>
+                <input
+                  type="password"
+                  value={senhaMestraAtualForm}
+                  onChange={e => setSenhaMestraAtualForm(e.target.value)}
+                  placeholder="Senha atual (ex: Maraccini26@)"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2 focus:outline-none focus:border-radiant-pink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-stone-500 text-[10px] font-bold mb-0.5">Nova Senha Mestra</label>
+                <input
+                  type="password"
+                  value={novaSenhaMestraForm}
+                  onChange={e => setNovaSenhaMestraForm(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2 focus:outline-none focus:border-radiant-pink"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-stone-800 hover:bg-stone-900 text-white font-bold py-2 rounded-xl transition"
+              >
+                Atualizar Senha Mestra
+              </button>
+            </div>
+          </form>
+
+          {/* 4. Bloquear Agora */}
+          {onBloquear && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onBloquear}
+                className="w-full bg-rose-100/70 hover:bg-rose-200 text-rose-700 font-bold py-3 rounded-2xl transition flex items-center justify-center gap-2 border border-rose-200/80 active:scale-95"
+              >
+                <Lock className="w-4 h-4" />
+                Bloquear Aplicativo Agora (Testar Tela de Bloqueio)
+              </button>
+            </div>
+          )}
         </div>
       )}
 

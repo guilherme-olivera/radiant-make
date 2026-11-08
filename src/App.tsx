@@ -7,12 +7,27 @@ import { Cobrancas } from './components/Cobrancas';
 import { Catalogo } from './components/Catalogo';
 import { Relatorios } from './components/Relatorios';
 import { Configuracoes } from './components/Configuracoes';
+import { Login } from './components/Login';
 import { storage } from './services/storage';
 import { syncService } from './services/sync';
 import { Cliente, Produto, Venda, Cobranca, ConfiguracoesLoja, Categoria, Marca } from './types';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
+
+  // Estado de Autenticação (PIN / Biometria / Senha Mestra)
+  const [autenticado, setAutenticado] = useState<boolean>(() => {
+    const sessao = localStorage.getItem('radiant_auth_session');
+    if (sessao) {
+      try {
+        const parsed = JSON.parse(sessao);
+        return Boolean(parsed.autenticado);
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
 
   // Estados principais
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -156,8 +171,18 @@ export const App: React.FC = () => {
     dispararSyncBackground();
   };
 
+  const handleBloquear = () => {
+    localStorage.removeItem('radiant_auth_session');
+    setAutenticado(false);
+  };
+
   const hoje = new Date().toISOString().split('T')[0];
   const pendentesHojeCount = cobrancas.filter(c => c.status !== 'PAGO' && c.dataVencimento <= hoje).length;
+
+  // Se não estiver autenticado, exibe a tela de Login/PIN/Biometria
+  if (!autenticado) {
+    return <Login onLoginSucesso={() => setAutenticado(true)} />;
+  }
 
   return (
     <div className="bg-stone-900 text-stone-800 flex justify-center items-center min-h-screen p-0 sm:p-4">
@@ -168,6 +193,7 @@ export const App: React.FC = () => {
           onOpenCobrancas={() => setCurrentTab('cobrancas')}
           onOpenConfig={() => setCurrentTab('config')}
           onOpenRelatorios={() => setCurrentTab('relatorios')}
+          onBloquear={handleBloquear}
           pendentesHojeCount={pendentesHojeCount}
         />
 
@@ -250,6 +276,7 @@ export const App: React.FC = () => {
               onSalvarMarcas={handleSalvarMarcas}
               onVoltar={() => setCurrentTab('dashboard')}
               onSincronizarNuvem={handleSincronizarNuvem}
+              onBloquear={handleBloquear}
             />
           )}
         </main>
