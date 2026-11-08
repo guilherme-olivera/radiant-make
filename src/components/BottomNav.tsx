@@ -1,7 +1,7 @@
 import React from 'react';
-import { LayoutGrid, Plus, BadgeDollarSign, Sparkles } from 'lucide-react';
+import { LayoutGrid, Plus, BadgeDollarSign, Sparkles, Users } from 'lucide-react';
 
-export type TabType = 'dashboard' | 'venda' | 'cobrancas' | 'catalogo' | 'config' | 'relatorios';
+export type TabType = 'dashboard' | 'venda' | 'cobrancas' | 'catalogo' | 'clientes' | 'config' | 'relatorios';
 
 interface BottomNavProps {
   currentTab: TabType;
@@ -15,7 +15,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   cobrancasAlertCount,
 }) => {
   return (
-    <nav className="fixed sm:absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200/80 pt-2 pb-5 sm:pb-2 px-6 flex justify-between items-center z-30 max-w-md mx-auto">
+    <nav className="fixed sm:absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200/80 pt-2 pb-5 sm:pb-2 px-3 sm:px-4 flex justify-around items-center z-30 max-w-md mx-auto">
       {/* Início */}
       <button
         onClick={() => onChangeTab('dashboard')}
@@ -25,6 +25,20 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       >
         <LayoutGrid className="w-5 h-5" />
         <span className="text-[10px] font-bold mt-1">Início</span>
+      </button>
+
+      {/* Cobranças */}
+      <button
+        onClick={() => onChangeTab('cobrancas')}
+        className={`flex flex-col items-center transition relative ${
+          currentTab === 'cobrancas' ? 'text-radiant-pink' : 'text-stone-400 hover:text-stone-600'
+        }`}
+      >
+        <BadgeDollarSign className="w-5 h-5" />
+        <span className="text-[10px] font-bold mt-1">Cobranças</span>
+        {cobrancasAlertCount > 0 && (
+          <span className="absolute top-0 right-3 w-2 h-2 bg-amber-500 rounded-full" />
+        )}
       </button>
 
       {/* Botão Central Venda */}
@@ -38,18 +52,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         <span className="text-[10px] font-extrabold text-radiant-pink mt-1">Venda</span>
       </button>
 
-      {/* Cobranças */}
+      {/* Clientes */}
       <button
-        onClick={() => onChangeTab('cobrancas')}
-        className={`flex flex-col items-center transition relative ${
-          currentTab === 'cobrancas' ? 'text-radiant-pink' : 'text-stone-400 hover:text-stone-600'
+        onClick={() => onChangeTab('clientes')}
+        className={`flex flex-col items-center transition ${
+          currentTab === 'clientes' ? 'text-radiant-pink' : 'text-stone-400 hover:text-stone-600'
         }`}
       >
-        <BadgeDollarSign className="w-5 h-5" />
-        <span className="text-[10px] font-bold mt-1">Cobranças</span>
-        {cobrancasAlertCount > 0 && (
-          <span className="absolute top-0 right-3.5 w-2 h-2 bg-amber-500 rounded-full" />
-        )}
+        <Users className="w-5 h-5" />
+        <span className="text-[10px] font-bold mt-1">Clientes</span>
       </button>
 
       {/* Catálogo */}

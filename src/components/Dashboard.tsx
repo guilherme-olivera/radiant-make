@@ -14,6 +14,7 @@ interface DashboardProps {
   onAbrirCampanhas: () => void;
   onAbrirCatalogo: () => void;
   onAbrirRelatorios: () => void;
+  onAbrirClientes?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -27,6 +28,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAbrirCampanhas,
   onAbrirCatalogo,
   onAbrirRelatorios,
+  onAbrirClientes,
 }) => {
   const hoje = new Date().toISOString().split('T')[0];
   const mesAtual = new Date().getMonth() + 1; // 1-12
@@ -100,36 +102,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Alertas Inteligentes do Dia: Aniversários & Estoque */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
+      {/* Alertas Inteligentes do Dia: Aniversários, Estoque & Clientes */}
+      <div className="grid grid-cols-3 gap-2 text-xs">
         {/* Card Aniversariantes */}
         <div
           onClick={onAbrirCampanhas}
-          className="bg-rose-50/80 border border-rose-200/90 rounded-2xl p-3 cursor-pointer hover:bg-rose-100/70 transition space-y-1 shadow-xs"
+          className="bg-rose-50/80 border border-rose-200/90 rounded-2xl p-2.5 cursor-pointer hover:bg-rose-100/70 transition space-y-1 shadow-xs"
         >
           <div className="flex items-center justify-between">
-            <span className="text-base">🎂</span>
-            <span className="text-[10px] font-bold text-radiant-pink bg-white px-1.5 py-0.2 rounded-full border border-rose-200">
-              {aniversariantesMes.length} no mês
+            <span className="text-sm">🎂</span>
+            <span className="text-[9px] font-bold text-radiant-pink bg-white px-1 py-0.2 rounded-full border border-rose-200">
+              {aniversariantesMes.length}
             </span>
           </div>
-          <p className="font-bold text-stone-900 leading-tight">Aniversariantes</p>
-          <p className="text-[10px] text-stone-500">Enviar cupom de desconto</p>
+          <p className="font-bold text-stone-900 leading-tight text-[11px]">Nivers</p>
+          <p className="text-[9px] text-stone-500 truncate">Cupons mês</p>
         </div>
 
         {/* Card Estoque Baixo */}
         <div
           onClick={onAbrirCatalogo}
-          className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-3 cursor-pointer hover:bg-amber-100/70 transition space-y-1 shadow-xs"
+          className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-2.5 cursor-pointer hover:bg-amber-100/70 transition space-y-1 shadow-xs"
         >
           <div className="flex items-center justify-between">
-            <span className="text-base">⚠️</span>
-            <span className="text-[10px] font-bold text-amber-800 bg-white px-1.5 py-0.2 rounded-full border border-amber-200">
-              {produtosEstoqueBaixo.length} baixos
+            <span className="text-sm">⚠️</span>
+            <span className="text-[9px] font-bold text-amber-800 bg-white px-1 py-0.2 rounded-full border border-amber-200">
+              {produtosEstoqueBaixo.length}
             </span>
           </div>
-          <p className="font-bold text-stone-900 leading-tight">Reposição Estoque</p>
-          <p className="text-[10px] text-stone-500">Ver produtos no catálogo</p>
+          <p className="font-bold text-stone-900 leading-tight text-[11px]">Estoque</p>
+          <p className="text-[9px] text-stone-500 truncate">Reposição</p>
+        </div>
+
+        {/* Card Minhas Clientes */}
+        <div
+          onClick={onAbrirClientes}
+          className="bg-purple-50/80 border border-purple-200/90 rounded-2xl p-2.5 cursor-pointer hover:bg-purple-100/70 transition space-y-1 shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm">👥</span>
+            <span className="text-[9px] font-bold text-purple-700 bg-white px-1 py-0.2 rounded-full border border-purple-200">
+              {clientes.length}
+            </span>
+          </div>
+          <p className="font-bold text-stone-900 leading-tight text-[11px]">Clientes</p>
+          <p className="text-[9px] text-stone-500 truncate">Gerenciar</p>
         </div>
       </div>
 

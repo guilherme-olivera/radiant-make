@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { NovaVenda } from './components/NovaVenda';
 import { Cobrancas } from './components/Cobrancas';
 import { Catalogo } from './components/Catalogo';
+import { Clientes } from './components/Clientes';
 import { Relatorios } from './components/Relatorios';
 import { Configuracoes } from './components/Configuracoes';
 import { Login } from './components/Login';
@@ -96,6 +97,20 @@ export const App: React.FC = () => {
 
   const handleCadastrarCliente = (novoCliente: Cliente) => {
     const atualizados = [novoCliente, ...clientes];
+    setClientes(atualizados);
+    storage.saveClientes(atualizados);
+    dispararSyncBackground();
+  };
+
+  const handleAtualizarCliente = (clienteAtualizado: Cliente) => {
+    const atualizados = clientes.map(c => (c.id === clienteAtualizado.id ? clienteAtualizado : c));
+    setClientes(atualizados);
+    storage.saveClientes(atualizados);
+    dispararSyncBackground();
+  };
+
+  const handleExcluirCliente = (id: string) => {
+    const atualizados = clientes.filter(c => c.id !== id);
     setClientes(atualizados);
     storage.saveClientes(atualizados);
     dispararSyncBackground();
@@ -211,6 +226,19 @@ export const App: React.FC = () => {
               onAbrirCampanhas={() => setCurrentTab('config')}
               onAbrirCatalogo={() => setCurrentTab('catalogo')}
               onAbrirRelatorios={() => setCurrentTab('relatorios')}
+              onAbrirClientes={() => setCurrentTab('clientes')}
+            />
+          )}
+
+          {currentTab === 'clientes' && (
+            <Clientes
+              clientes={clientes}
+              vendas={vendas}
+              cobrancas={cobrancas}
+              onAdicionarCliente={handleCadastrarCliente}
+              onAtualizarCliente={handleAtualizarCliente}
+              onExcluirCliente={handleExcluirCliente}
+              onVoltar={() => setCurrentTab('dashboard')}
             />
           )}
 
