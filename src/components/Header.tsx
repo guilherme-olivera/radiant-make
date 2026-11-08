@@ -17,21 +17,21 @@ export const Header: React.FC<HeaderProps> = ({
   pendentesHojeCount,
 }) => {
   return (
-    <header className="bg-gradient-to-r from-radiant-pink to-rose-400 text-white px-5 pt-7 pb-4 shadow-md flex justify-between items-center z-20 sticky top-0">
-      <div className="flex items-center space-x-2.5">
-        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-radiant-pink font-bold shadow-md text-lg">
-          <Sparkles className="w-5 h-5 text-radiant-pink fill-radiant-pink" />
+    <header className="bg-gradient-to-r from-radiant-pink to-rose-400 text-white px-4 pt-8 pb-3.5 shadow-md flex justify-between items-center z-20 sticky top-0">
+      <div className="flex items-center space-x-2.5 min-w-0 flex-1 pr-2">
+        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-radiant-pink font-bold shadow-md text-base shrink-0">
+          <Sparkles className="w-4.5 h-4.5 text-radiant-pink fill-radiant-pink" />
         </div>
-        <div>
-          <h1 className="text-base font-extrabold tracking-tight">Radiant Make</h1>
-          <p className="text-[11px] text-pink-100 flex items-center gap-1.5 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
+        <div className="min-w-0">
+          <h1 className="text-base font-extrabold tracking-tight truncate">Radiant Make</h1>
+          <p className="text-[10px] text-pink-100 flex items-center gap-1.5 font-medium truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 inline-block animate-pulse shrink-0"></span>
             Maquiagem & Acessórios
           </p>
         </div>
       </div>
 
-      <div className="flex items-center space-x-1.5">
+      <div className="flex items-center space-x-1.5 shrink-0">
         {onOpenRelatorios && (
           <button
             onClick={onOpenRelatorios}
