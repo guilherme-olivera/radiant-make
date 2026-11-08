@@ -112,7 +112,7 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
   // Estados da Central de Campanhas WhatsApp
   const [filtroPublico, setFiltroPublico] = useState<'NIVER' | 'MULHERES' | 'HOMENS' | 'TODOS' | 'ESPECIFICO'>('NIVER');
   const [clienteEspecificoId, setClienteEspecificoId] = useState<string>(clientes[0]?.id || '');
-  const [tipoMensagem, setTipoMensagem] = useState<'NIVER' | 'DATAS' | 'AGRADECIMENTO' | 'CUSTOM'>('NIVER');
+  const [tipoMensagem, setTipoMensagem] = useState<'NIVER' | 'DATAS' | 'AGRADECIMENTO' | 'LEMBRETE' | 'COBRANCA' | 'CUSTOM'>('NIVER');
   const [textoPersonalizado, setTextoPersonalizado] = useState('');
 
   // Salvar Config Geral
@@ -202,17 +202,25 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
       template = formData.mensagemDataComemorativa || INITIAL_CONFIG.mensagemDataComemorativa;
     } else if (tipoMensagem === 'AGRADECIMENTO') {
       template = formData.mensagemAgradecimento || INITIAL_CONFIG.mensagemAgradecimento;
+    } else if (tipoMensagem === 'LEMBRETE') {
+      template = formData.mensagemLembrete || INITIAL_CONFIG.mensagemLembrete;
+    } else if (tipoMensagem === 'COBRANCA') {
+      template = formData.mensagemCobranca || INITIAL_CONFIG.mensagemCobranca;
     } else {
       template = textoPersonalizado || 'Oi, {nome}! ✨ Tudo bem?';
     }
 
     const textoFinal = template
-      .replace('{nome}', primeiroNome)
-      .replace('{cupom}', formData.cupomAniversarioPadrao || 'NIVER10')
-      .replace('{chavePix}', formData.chavePix)
-      .replace('{pedidoId}', 'Geral')
-      .replace('{itens}', 'seus produtos favoritos')
-      .replace('{valor}', '0,00');
+      .replace(/{nome}/g, primeiroNome)
+      .replace(/{cupom}/g, formData.cupomAniversarioPadrao || 'NIVER10')
+      .replace(/{chavePix}/g, formData.chavePix)
+      .replace(/{tipoPix}/g, formData.tipoChavePix || 'Chave Pix')
+      .replace(/{pedidoId}/g, 'Geral')
+      .replace(/{itens}/g, 'seus produtos favoritos')
+      .replace(/{valor}/g, '0,00')
+      .replace(/{parcela}/g, '1')
+      .replace(/{quando}/g, 'hoje')
+      .replace(/{dataVencimento}/g, 'nesta semana');
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(textoFinal)}`;
   };
@@ -425,31 +433,139 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
 
           {/* Escolha do Modelo da Mensagem */}
           <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-2.5 text-xs">
-            <label className="font-bold text-stone-800 block">2. Qual mensagem enviar?</label>
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-stone-800 block">2. Qual mensagem enviar?</label>
+              <button
+                type="button"
+                onClick={() => setTabConfig('MENSAGENS')}
+                className="text-[11px] text-radiant-pink font-semibold hover:underline"
+              >
+                ✏️ Editar Textos
+              </button>
+            </div>
+
+            {/* Opções de Mensagens Cadastradas */}
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setTipoMensagem('NIVER')}
-                className={`p-2 rounded-xl border text-xs font-bold transition ${
+                className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-start gap-0.5 ${
                   tipoMensagem === 'NIVER'
-                    ? 'bg-radiant-pink text-white border-radiant-pink'
+                    ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
                     : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                🎂 Parabéns + Cupom
+                <span>🎂 Aniversário + Cupom</span>
+                <span className={`text-[10px] font-normal line-clamp-1 text-left ${tipoMensagem === 'NIVER' ? 'text-white/80' : 'text-stone-400'}`}>
+                  {formData.cupomAniversarioPadrao ? `Cupom ${formData.cupomAniversarioPadrao}` : 'Com votos e cupom'}
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTipoMensagem('DATAS')}
-                className={`p-2 rounded-xl border text-xs font-bold transition ${
+                className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-start gap-0.5 ${
                   tipoMensagem === 'DATAS'
-                    ? 'bg-radiant-pink text-white border-radiant-pink'
+                    ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
                     : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                🌸 Novidades & Mimo
+                <span>🌸 Novidades & Mimo</span>
+                <span className={`text-[10px] font-normal line-clamp-1 text-left ${tipoMensagem === 'DATAS' ? 'text-white/80' : 'text-stone-400'}`}>
+                  Datas especiais & lançamentos
+                </span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setTipoMensagem('AGRADECIMENTO')}
+                className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-start gap-0.5 ${
+                  tipoMensagem === 'AGRADECIMENTO'
+                    ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                }`}
+              >
+                <span>💖 Agradecimento</span>
+                <span className={`text-[10px] font-normal line-clamp-1 text-left ${tipoMensagem === 'AGRADECIMENTO' ? 'text-white/80' : 'text-stone-400'}`}>
+                  Pós-venda e carinho
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTipoMensagem('LEMBRETE')}
+                className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-start gap-0.5 ${
+                  tipoMensagem === 'LEMBRETE'
+                    ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                }`}
+              >
+                <span>⏰ Lembrete Amigável</span>
+                <span className={`text-[10px] font-normal line-clamp-1 text-left ${tipoMensagem === 'LEMBRETE' ? 'text-white/80' : 'text-stone-400'}`}>
+                  Aviso amigável de vencimento
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTipoMensagem('COBRANCA')}
+                className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-start gap-0.5 ${
+                  tipoMensagem === 'COBRANCA'
+                    ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                }`}
+              >
+                <span>💬 Cobrança Delicada</span>
+                <span className={`text-[10px] font-normal line-clamp-1 text-left ${tipoMensagem === 'COBRANCA' ? 'text-white/80' : 'text-stone-400'}`}>
+                  Parcela atrasada com Pix
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTipoMensagem('CUSTOM')}
+                className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-start gap-0.5 ${
+                  tipoMensagem === 'CUSTOM'
+                    ? 'bg-radiant-pink text-white border-radiant-pink shadow-xs'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                }`}
+              >
+                <span>✍️ Mensagem Livre</span>
+                <span className={`text-[10px] font-normal line-clamp-1 text-left ${tipoMensagem === 'CUSTOM' ? 'text-white/80' : 'text-stone-400'}`}>
+                  Escrever na hora
+                </span>
+              </button>
+            </div>
+
+            {/* Campo para Mensagem Livre */}
+            {tipoMensagem === 'CUSTOM' && (
+              <div className="pt-2">
+                <textarea
+                  rows={3}
+                  value={textoPersonalizado}
+                  onChange={e => setTextoPersonalizado(e.target.value)}
+                  placeholder="Escreva sua mensagem aqui... Use {nome} para o nome da cliente."
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-xs text-stone-800 focus:outline-none focus:border-radiant-pink"
+                />
+              </div>
+            )}
+
+            {/* Pré-visualização do Texto Cadastrado Selecionado */}
+            <div className="pt-2 bg-stone-50 p-2.5 rounded-2xl border border-stone-200/80 text-[11px] text-stone-600">
+              <span className="font-bold text-radiant-pink block mb-0.5">👁️ Prévia do texto que será enviado:</span>
+              <p className="italic line-clamp-3 bg-white p-2 rounded-xl border border-stone-100">
+                "{tipoMensagem === 'NIVER'
+                  ? (formData.mensagemAniversario || INITIAL_CONFIG.mensagemAniversario).replace('{cupom}', formData.cupomAniversarioPadrao || 'NIVER10')
+                  : tipoMensagem === 'DATAS'
+                  ? (formData.mensagemDataComemorativa || INITIAL_CONFIG.mensagemDataComemorativa)
+                  : tipoMensagem === 'AGRADECIMENTO'
+                  ? (formData.mensagemAgradecimento || INITIAL_CONFIG.mensagemAgradecimento)
+                  : tipoMensagem === 'LEMBRETE'
+                  ? (formData.mensagemLembrete || INITIAL_CONFIG.mensagemLembrete)
+                  : tipoMensagem === 'COBRANCA'
+                  ? (formData.mensagemCobranca || INITIAL_CONFIG.mensagemCobranca)
+                  : (textoPersonalizado || 'Escreva o texto acima...')}"
+              </p>
             </div>
           </div>
 
