@@ -29,25 +29,33 @@ O projeto foi criado em uma pasta independente:
 ```
 E:\Projetos\radiant-make\
 ├── public\
+│   └── manifest.json          # Manifesto PWA para instalação no celular
 ├── src\
 │   ├── components\
-│   │   ├── Header.tsx         # Barra superior com notificações e atalho para configurações
+│   │   ├── Header.tsx         # Barra superior com notificações e atalhos rápidos
 │   │   ├── BottomNav.tsx      # Barra de navegação inferior estilo app móvel
-│   │   ├── Dashboard.tsx      # Visão financeira do mês e alertas urgentes do dia
-│   │   ├── NovaVenda.tsx      # Registro em 15s com clientes, produtos rápidos e itens avulsos
-│   │   ├── Cobrancas.tsx      # Painel "Quem me deve", filtros e botão de WhatsApp + Baixa Pix
-│   │   ├── Catalogo.tsx       # Catálogo de produtos, estoque e cadastro de novos itens
-│   │   ├── Relatorios.tsx     # Métricas de faturamento, lucro estimado e exportação CSV/Excel
-│   │   └── Configuracoes.tsx  # Configuração da Chave Pix e customização dos textos de WhatsApp
+│   │   ├── Dashboard.tsx      # Visão financeira do mês, aniversariantes e alertas de estoque
+│   │   ├── NovaVenda.tsx      # Registro em 15s com parcelamento 1x, 2x, 3x e fotos reais
+│   │   ├── Cobrancas.tsx      # "Quem me deve", parcelas, remarcação de vencimento e detalhes
+│   │   ├── Catalogo.tsx       # Catálogo com fotos, Custo Médio Ponderado, margem e alerta de estoque
+│   │   ├── Relatorios.tsx     # Métricas de faturamento, margem de lucro e histórico
+│   │   └── Configuracoes.tsx  # Campanhas WhatsApp, Categorias/Marcas, Nuvem Supabase e Pix
 │   ├── services\
-│   │   └── storage.ts         # Persistência local (LocalStorage) com dados iniciais reais
+│   │   ├── storage.ts         # Persistência local (LocalStorage) offline-first com seeds
+│   │   ├── supabase.ts        # Cliente Supabase configurado
+│   │   └── sync.ts            # Sincronização bidirecional nuvem <-> local
 │   ├── utils\
-│   │   └── whatsapp.ts        # Formatador inteligente de links wa.me com tags dinâmicas
+│   │   ├── whatsapp.ts        # Formatador de links wa.me com tags dinâmicas
+│   │   └── image.ts           # Compressão automática de fotos no navegador
 │   ├── types\
-│   │   └── index.ts           # Interfaces TypeScript (Cliente, Produto, Venda, Cobranca, etc.)
-│   ├── App.tsx                # Orquestração do app e troca de telas
+│   │   └── index.ts           # Interfaces TypeScript completas
+│   ├── App.tsx                # Orquestração do app com sincronização em segundo plano
 │   ├── index.css              # Estilos globais e utilitários Tailwind
 │   └── main.tsx               # Ponto de entrada React
+├── supabase_schema.sql        # Script SQL executado no banco PostgreSQL do Supabase
+├── vercel.json                # Configuração para deploy instantâneo na Vercel
+├── .env                       # Variáveis de ambiente configuradas com Supabase
+└── .gitignore                 # Proteção de credenciais e dependências
 ├── index.html                 # Template HTML com meta tags mobile
 ├── tailwind.config.js         # Paleta de cores da Radiant Make (rosa, dourado, nude)
 ├── vite.config.ts             # Configuração do Vite (porta 5173, host habilitado)
