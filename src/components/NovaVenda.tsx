@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, UserPlus, Plus, Minus, Check, Calendar, MessageCircle, Sparkles, Tag, Heart, X, Percent, Gift } from 'lucide-react';
+import { Search, UserPlus, Plus, Minus, Check, Calendar, MessageCircle, Sparkles, Tag, Heart, X, Percent, Gift, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Cliente, Produto, ItemVenda, FormaPagamento, Venda, ConfiguracoesLoja, GeneroCliente } from '../types';
 import { formatCurrency, formatDateBR, cleanPhone, extrairPrimeiroNome } from '../utils/whatsapp';
 
@@ -35,16 +35,16 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
   const [filtroRapido, setFiltroRapido] = useState<string>('TODOS');
 
   // Itens da Venda (Carrinho)
-  const [carrinho, setCarrinho] = useState<{ [produtoId: string]: number }>({
-    '1': 1,
-    '2': 1,
-  });
+  const [carrinho, setCarrinho] = useState<{ [produtoId: string]: number }>({});
 
   // Item Avulso
   const [modalAvulso, setModalAvulso] = useState(false);
   const [avulsoNome, setAvulsoNome] = useState('');
   const [avulsoPreco, setAvulsoPreco] = useState('');
   const [itensAvulsos, setItensAvulsos] = useState<ItemVenda[]>([]);
+
+  // Modal de Resumo & Confirmação Pré-Venda
+  const [modalResumo, setModalResumo] = useState(false);
 
   // Estados de Desconto
   const [tipoDesconto, setTipoDesconto] = useState<'VALOR' | 'PORCENTAGEM'>('VALOR');
@@ -111,6 +111,17 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
       }
       return { ...prev, [pId]: q };
     });
+  };
+
+  // Limpar todas as escolhas de produtos e itens avulsos
+  const handleLimparEscolhas = () => {
+    if (Object.keys(carrinho).length === 0 && itensAvulsos.length === 0) return;
+    if (window.confirm('Deseja limpar todos os produtos selecionados nesta venda?')) {
+      setCarrinho({});
+      setItensAvulsos([]);
+      setValorDesconto(0);
+      setInputDesconto('');
+    }
   };
 
   // Cálculo Total
@@ -191,7 +202,20 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
     setModalNovoCliente(false);
   };
 
-  // Finalizar Venda
+  // Abrir Resumo para Conferência
+  const handleAbrirResumo = () => {
+    if (!clienteSelecionado) {
+      alert('Por favor, selecione ou cadastre uma cliente.');
+      return;
+    }
+    if (todosItens.length === 0) {
+      alert('Selecione pelo menos um produto para a venda.');
+      return;
+    }
+    setModalResumo(true);
+  };
+
+  // Executar e Salvar Venda Efetivamente
   const handleFinalizar = () => {
     if (!clienteSelecionado) {
       alert('Por favor, selecione ou cadastre uma cliente.');
@@ -219,6 +243,7 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
     };
 
     onSalvarVenda(novaVenda);
+    setModalResumo(false);
     setVendaConcluida(novaVenda);
   };
 
@@ -368,13 +393,35 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
       {/* 2. SELEÇÃO DE PRODUTOS */}
       <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-stone-800">2. Escolha os Produtos</label>
-          <button
-            onClick={() => setModalAvulso(true)}
-            className="text-[11px] text-radiant-pink font-bold hover:underline"
-          >
-            + Item Avulso
-          </button>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-stone-800">2. Escolha os Produtos</label>
+            {todosItens.length > 0 && (
+              <span className="text-[10px] font-extrabold bg-rose-100 text-radiant-pink px-2 py-0.5 rounded-full">
+                {todosItens.reduce((acc, i) => acc + i.quantidade, 0)} itens
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            {todosItens.length > 0 && (
+              <button
+                type="button"
+                onClick={handleLimparEscolhas}
+                className="text-[11px] text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-xl transition"
+                title="Limpar todos os produtos escolhidos"
+              >
+                <Trash2 className="w-3 h-3" />
+                Limpar
+              </button>
+            )}
+
+            <button
+              onClick={() => setModalAvulso(true)}
+              className="text-[11px] text-radiant-pink font-bold hover:underline"
+            >
+              + Item Avulso
+            </button>
+          </div>
         </div>
 
         {/* Barra de Busca de Produtos */}
@@ -453,7 +500,7 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
                   }`}
                 >
                   {selecionado && (
-                    <div className="absolute top-2 right-2 flex items-center space-x-1 bg-white rounded-full p-0.5 shadow border border-rose-200">
+                    <div className="absolute top-2 right-2 z-10 flex items-center space-x-1 bg-white rounded-full p-0.5 shadow-md border border-rose-300">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -481,23 +528,26 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
                   )}
 
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center mb-1">
                       {prod.fotoUrl ? (
-                        <div className="w-10 h-10 rounded-xl overflow-hidden border border-rose-100 shadow-xs">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden border border-rose-100 shadow-xs shrink-0">
                           <img src={prod.fotoUrl} alt={prod.nome} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <span className="text-xl">{prod.emoji || '✨'}</span>
                       )}
+                    </div>
+
+                    <div className="mt-1 space-y-0.5">
                       {prod.marca && (
-                        <span className="text-[9px] bg-stone-200/70 text-stone-700 px-1.5 py-0.2 rounded-md font-bold">
+                        <span className="text-[9px] bg-stone-200/80 text-stone-700 px-1.5 py-0.2 rounded-md font-bold inline-block max-w-[120px] truncate">
                           {prod.marca}
                         </span>
                       )}
+                      <p className="font-bold text-stone-900 leading-tight line-clamp-2">
+                        {prod.nome}
+                      </p>
                     </div>
-                    <p className="font-bold text-stone-900 leading-tight mt-1 line-clamp-2">
-                      {prod.nome}
-                    </p>
                   </div>
 
                   <div className="mt-2 flex items-center justify-between">
@@ -845,13 +895,137 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
 
       {/* BOTÃO PRINCIPAL */}
       <button
-        onClick={handleFinalizar}
-        disabled={totalGeral <= 0}
+        type="button"
+        onClick={handleAbrirResumo}
+        disabled={totalGeral <= 0 || !clienteSelecionado}
         className="w-full bg-gradient-to-r from-radiant-pink to-rose-500 hover:from-rose-600 hover:to-pink-600 disabled:opacity-50 text-white font-extrabold py-4 rounded-3xl shadow-lg shadow-radiant-pink/30 flex items-center justify-center gap-2 transition active:scale-[0.99]"
       >
-        <Check className="w-5 h-5 stroke-[2.5]" />
-        Salvar Venda & Enviar WhatsApp
+        <ShoppingBag className="w-5 h-5 stroke-[2.5]" />
+        Conferir Pedido & Salvar ({todosItens.reduce((acc, i) => acc + i.quantidade, 0)} itens)
       </button>
+
+      {/* MODAL DE RESUMO & CONFERÊNCIA DO PEDIDO */}
+      {modalResumo && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-200">
+            {/* Cabeçalho do Resumo */}
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-2xl bg-rose-100 text-radiant-pink flex items-center justify-center font-bold">
+                  <ShoppingBag className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-stone-900">Resumo da Venda</h3>
+                  <p className="text-[11px] text-stone-500">Confira antes de executar</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalResumo(false)}
+                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Informações da Cliente */}
+            <div className="bg-stone-50 p-3 rounded-2xl border border-stone-200/80 text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500 font-medium">Cliente:</span>
+                <span className="font-extrabold text-stone-900">{clienteSelecionado?.nome}</span>
+              </div>
+              {clienteSelecionado?.referencia && (
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-stone-400">Referência:</span>
+                  <span className="text-radiant-pink font-semibold">{clienteSelecionado.referencia}</span>
+                </div>
+              )}
+              {clienteSelecionado?.whatsapp && (
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-stone-400">WhatsApp:</span>
+                  <span className="text-stone-600 font-mono">{clienteSelecionado.whatsapp}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Lista dos Produtos Selecionados */}
+            <div className="space-y-1.5 flex-1 overflow-y-auto no-scrollbar max-h-48 pr-1">
+              <label className="text-[11px] font-bold text-stone-700 block">Itens Selecionados:</label>
+              {todosItens.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 px-3 bg-stone-50/80 rounded-xl border border-stone-100 text-xs"
+                >
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="font-bold text-stone-800 truncate">{item.nome}</p>
+                    <p className="text-[10px] text-stone-500">
+                      {item.quantidade}x {formatCurrency(item.precoUnitario)}
+                    </p>
+                  </div>
+                  <span className="font-extrabold text-stone-900 text-xs">
+                    {formatCurrency(item.subtotal)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Detalhes Financeiros & Desconto */}
+            <div className="bg-rose-50/50 p-3.5 rounded-2xl border border-rose-100 space-y-1.5 text-xs">
+              <div className="flex justify-between items-center text-stone-600">
+                <span>Subtotal ({todosItens.reduce((acc, i) => acc + i.quantidade, 0)} itens):</span>
+                <span className="font-semibold text-stone-800">{formatCurrency(subtotalGeral)}</span>
+              </div>
+
+              {descontoCalculado > 0 && (
+                <div className="flex justify-between items-center text-emerald-600 font-bold">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5" />
+                    Desconto Especial:
+                  </span>
+                  <span>- {formatCurrency(descontoCalculado)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-rose-200">
+                <span className="font-black text-stone-900 text-sm">Valor Final:</span>
+                <span className="font-black text-xl text-radiant-pink">
+                  {formatCurrency(totalGeral)}
+                </span>
+              </div>
+
+              {/* Condição de Pagamento */}
+              <div className="pt-2 border-t border-rose-100/80 flex items-center justify-between text-[11px]">
+                <span className="text-stone-500 font-medium">Pagamento:</span>
+                <span className="font-bold text-stone-800">
+                  {formaPagamento === 'PRAZO'
+                    ? `A Prazo (${quantidadeParcelas}x de ${formatCurrency(valorParcela)} • 1ª dia ${formatDateBR(dataVencimento)})`
+                    : 'À Vista (Pix / Dinheiro)'}
+                </span>
+              </div>
+            </div>
+
+            {/* Botões de Ação no Modal de Resumo */}
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setModalResumo(false)}
+                className="w-1/3 py-3 rounded-2xl border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-100 active:scale-95 transition"
+              >
+                Voltar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleFinalizar}
+                className="w-2/3 py-3 bg-gradient-to-r from-radiant-pink to-rose-500 hover:from-rose-600 hover:to-pink-600 active:scale-95 text-white font-extrabold rounded-2xl text-xs shadow-md shadow-radiant-pink/30 flex items-center justify-center gap-1.5 transition"
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+                Executar Venda
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL NOVO CLIENTE COM REFERÊNCIA E ANIVERSÁRIO */}
       {modalNovoCliente && (
