@@ -138,6 +138,30 @@ export const syncService = {
     }
   },
 
+  // Excluir cliente diretamente na nuvem
+  excluirClienteNaNuvem: async (id: string): Promise<void> => {
+    const supabase = getSupabaseClient();
+    if (isSupabaseConfigured() && supabase) {
+      await supabase.from('clientes').delete().eq('id', id);
+    }
+  },
+
+  // Excluir produto diretamente na nuvem
+  excluirProdutoNaNuvem: async (id: string): Promise<void> => {
+    const supabase = getSupabaseClient();
+    if (isSupabaseConfigured() && supabase) {
+      await supabase.from('produtos').delete().eq('id', id);
+    }
+  },
+
+  // Excluir venda diretamente na nuvem
+  excluirVendaNaNuvem: async (id: string): Promise<void> => {
+    const supabase = getSupabaseClient();
+    if (isSupabaseConfigured() && supabase) {
+      await supabase.from('vendas').delete().eq('id', id);
+    }
+  },
+
   // Envia dados locais para a nuvem (LocalStorage -> Supabase)
   enviarParaNuvem: async (): Promise<{ sucesso: boolean; mensagem: string }> => {
     const supabase = getSupabaseClient();

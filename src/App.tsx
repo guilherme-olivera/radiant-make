@@ -103,6 +103,7 @@ export const App: React.FC = () => {
     const atualizadas = vendas.filter(v => v.id !== id);
     setVendas(atualizadas);
     localStorage.setItem('radiant_vendas', JSON.stringify(atualizadas));
+    syncService.excluirVendaNaNuvem(id).catch(() => {});
     dispararSyncBackground();
   };
 
@@ -124,6 +125,7 @@ export const App: React.FC = () => {
     const atualizados = clientes.filter(c => c.id !== id);
     setClientes(atualizados);
     storage.saveClientes(atualizados);
+    syncService.excluirClienteNaNuvem(id).catch(() => {});
     dispararSyncBackground();
   };
 
@@ -155,6 +157,7 @@ export const App: React.FC = () => {
   const handleExcluirProduto = (id: string) => {
     storage.excluirProduto(id);
     setProdutos(storage.getProdutos());
+    syncService.excluirProdutoNaNuvem(id).catch(() => {});
     dispararSyncBackground();
   };
 
