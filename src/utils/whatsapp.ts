@@ -8,7 +8,7 @@ export const cleanPhone = (phone: string): string => {
 };
 
 export const formatCurrency = (val: number): string => {
-  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\u00A0/g, ' ');
 };
 
 export const formatDateBR = (isoDate: string): string => {
@@ -35,19 +35,23 @@ export const extrairPrimeiroNome = (nomeCompleto: string): string => {
 };
 
 /**
+ * Gera a URL oficial da API do WhatsApp compatível universalmente com iOS, Android, PWA e Desktop.
+ * - Normaliza quebras de linha para CRLF (\r\n), impedindo que navegadores colapsem o texto em uma linha só.
+ * - Codifica emojis e caracteres especiais com encodeURIComponent diretamente para a API oficial sem redirecionamentos intermediários (wa.me) que corrompem UTF-8.
+ */
+export const gerarLinkWhatsApp = (phone: string, texto: string): string => {
+  const phoneLimpo = cleanPhone(phone);
+  const textoNormalizado = (texto || '').replace(/\r?\n/g, '\r\n');
+  const encodedText = encodeURIComponent(textoNormalizado);
+  return `https://api.whatsapp.com/send?phone=${phoneLimpo}&text=${encodedText}`;
+};
+
+/**
  * Abre o link do WhatsApp de forma universal (funciona perfeitamente em iOS Safari, PWA, Android e Desktop)
- * garantindo que quebras de linha não sejam colapsadas pelo navegador.
+ * contornando bloqueadores de popup no Safari e PWA.
  */
 export const abrirLinkWhatsApp = (phone: string, texto: string): void => {
-  const phoneLimpo = cleanPhone(phone);
-  // Normaliza quebras de linha para CRLF (\r\n), garantindo compatibilidade no WhatsApp mobile e desktop
-  const textoNormalizado = texto.replace(/\r?\n/g, '\r\n');
-  const encodedText = encodeURIComponent(textoNormalizado);
-
-  // No WhatsApp Web / Mobile, wa.me redireciona para api.whatsapp.com
-  const url = `https://api.whatsapp.com/send?phone=${phoneLimpo}&text=${encodedText}`;
-
-  // Cria um elemento <a> temporário para contornar bloqueadores de pop-up no Safari/PWA
+  const url = gerarLinkWhatsApp(phone, texto);
   const link = document.createElement('a');
   link.href = url;
   link.target = '_blank';
@@ -69,7 +73,6 @@ export const gerarLinkWhatsAppAgradecimento = (
   desconto?: number,
   subtotal?: number
 ): string => {
-  const phone = cleanPhone(clienteWhatsapp);
   const primeiroNome = extrairPrimeiroNome(clienteNome);
 
   let texto = (config.mensagemAgradecimento || '')
@@ -90,7 +93,7 @@ export const gerarLinkWhatsAppAgradecimento = (
     texto += `\n🔑 *Chave Pix (${config.tipoChavePix}):* ${config.chavePix}`;
   }
 
-  return `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
+  return gerarLinkWhatsApp(clienteWhatsapp, texto);
 };
 
 export const gerarLinkWhatsAppLembrete = (
@@ -104,7 +107,6 @@ export const gerarLinkWhatsAppLembrete = (
   numeroParcela?: number,
   totalParcelas?: number
 ): string => {
-  const phone = cleanPhone(clienteWhatsapp);
   const primeiroNome = extrairPrimeiroNome(clienteNome);
   const valorFormatado = valor.toFixed(2).replace('.', ',');
   const dataFormatada = formatDateBR(dataVencimento);
@@ -135,7 +137,7 @@ export const gerarLinkWhatsAppLembrete = (
       .replace('{chavePix}', config.chavePix);
   }
 
-  return `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
+  return gerarLinkWhatsApp(clienteWhatsapp, texto);
 };
 
 export const gerarLinkWhatsAppAniversario = (
@@ -143,14 +145,13 @@ export const gerarLinkWhatsAppAniversario = (
   clienteWhatsapp: string,
   config: ConfiguracoesLoja
 ): string => {
-  const phone = cleanPhone(clienteWhatsapp);
   const primeiroNome = extrairPrimeiroNome(clienteNome);
 
   const texto = (config.mensagemAniversario || '')
     .replace('{nome}', primeiroNome)
     .replace('{cupom}', config.cupomAniversarioPadrao || 'NIVER10');
 
-  return `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
+  return gerarLinkWhatsApp(clienteWhatsapp, texto);
 };
 
 export const gerarLinkWhatsAppPersonalizado = (
@@ -159,7 +160,6 @@ export const gerarLinkWhatsAppPersonalizado = (
   mensagemModelo: string,
   config: ConfiguracoesLoja
 ): string => {
-  const phone = cleanPhone(clienteWhatsapp);
   const primeiroNome = extrairPrimeiroNome(clienteNome);
 
   const texto = mensagemModelo
@@ -167,7 +167,7 @@ export const gerarLinkWhatsAppPersonalizado = (
     .replace('{cupom}', config.cupomAniversarioPadrao || 'NIVER10')
     .replace('{chavePix}', config.chavePix);
 
-  return `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
+  return gerarLinkWhatsApp(clienteWhatsapp, texto);
 };
 
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, UserPlus, Pencil, Trash2, Phone, Calendar, Heart, Sparkles, MessageCircle, ShoppingBag, ArrowUpDown, X, Check, Eye } from 'lucide-react';
 import { Cliente, GeneroCliente, Venda, Cobranca } from '../types';
-import { formatCurrency, formatDateBR, cleanPhone, extrairPrimeiroNome } from '../utils/whatsapp';
+import { formatCurrency, formatDateBR, cleanPhone, extrairPrimeiroNome, gerarLinkWhatsApp } from '../utils/whatsapp';
 
 interface ClientesProps {
   clientes: Cliente[];
@@ -320,9 +320,10 @@ export const Clientes: React.FC<ClientesProps> = ({
                   {/* Ações Rápidas */}
                   <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
                     <a
-                      href={`https://wa.me/${phoneClean}?text=${encodeURIComponent(
+                      href={gerarLinkWhatsApp(
+                        cli.whatsapp,
                         `Oi, ${extrairPrimeiroNome(cli.nome)}! ✨ Tudo bem?`
-                      )}`}
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Chamar no WhatsApp"
@@ -613,9 +614,10 @@ export const Clientes: React.FC<ClientesProps> = ({
               </button>
 
               <a
-                href={`https://wa.me/${cleanPhone(clienteDetalhes.whatsapp)}?text=${encodeURIComponent(
+                href={gerarLinkWhatsApp(
+                  clienteDetalhes.whatsapp,
                   `Oi, ${extrairPrimeiroNome(clienteDetalhes.nome)}! ✨ Tudo bem?`
-                )}`}
+                )}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-1/2 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 transition"

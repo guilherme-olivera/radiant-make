@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Save, Check, RefreshCw, MessageCircle, Heart, Tag, Layers, Users, Gift, Plus, Trash2, Send, Cloud, Smartphone, Database, CheckCircle2, Lock, Fingerprint, KeyRound, ShieldCheck } from 'lucide-react';
 import { ConfiguracoesLoja, Categoria, Marca, Cliente } from '../types';
 import { INITIAL_CONFIG } from '../services/storage';
-import { cleanPhone, formatCurrency, extrairPrimeiroNome } from '../utils/whatsapp';
+import { cleanPhone, formatCurrency, extrairPrimeiroNome, gerarLinkWhatsApp } from '../utils/whatsapp';
 import { biometriaService } from '../utils/biometria';
 
 interface ConfiguracoesProps {
@@ -222,7 +222,7 @@ export const Configuracoes: React.FC<ConfiguracoesProps> = ({
       .replace(/{quando}/g, 'hoje')
       .replace(/{dataVencimento}/g, 'nesta semana');
 
-    return `https://wa.me/${phone}?text=${encodeURIComponent(textoFinal)}`;
+    return gerarLinkWhatsApp(cliente.whatsapp, textoFinal);
   };
 
   return (
