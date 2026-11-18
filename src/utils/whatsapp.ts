@@ -34,6 +34,29 @@ export const extrairPrimeiroNome = (nomeCompleto: string): string => {
   return nomeCompleto.trim().split(' ')[0];
 };
 
+/**
+ * Abre o link do WhatsApp de forma universal (funciona perfeitamente em iOS Safari, PWA, Android e Desktop)
+ * garantindo que quebras de linha não sejam colapsadas pelo navegador.
+ */
+export const abrirLinkWhatsApp = (phone: string, texto: string): void => {
+  const phoneLimpo = cleanPhone(phone);
+  // Normaliza quebras de linha para CRLF (\r\n), garantindo compatibilidade no WhatsApp mobile e desktop
+  const textoNormalizado = texto.replace(/\r?\n/g, '\r\n');
+  const encodedText = encodeURIComponent(textoNormalizado);
+
+  // No WhatsApp Web / Mobile, wa.me redireciona para api.whatsapp.com
+  const url = `https://api.whatsapp.com/send?phone=${phoneLimpo}&text=${encodedText}`;
+
+  // Cria um elemento <a> temporário para contornar bloqueadores de pop-up no Safari/PWA
+  const link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export const gerarLinkWhatsAppAgradecimento = (
   clienteNome: string,
   clienteWhatsapp: string,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, UserPlus, Plus, Minus, Check, Calendar, MessageCircle, Sparkles, Tag, Heart, X, Percent, Gift, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Cliente, Produto, ItemVenda, FormaPagamento, Venda, ConfiguracoesLoja, GeneroCliente } from '../types';
-import { formatCurrency, formatDateBR, cleanPhone, extrairPrimeiroNome } from '../utils/whatsapp';
+import { formatCurrency, formatDateBR, cleanPhone, extrairPrimeiroNome, abrirLinkWhatsApp } from '../utils/whatsapp';
 
 interface NovaVendaProps {
   clientes: Cliente[];
@@ -288,11 +288,8 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
   // Disparar WhatsApp da Venda
   const handleEnviarWhatsApp = () => {
     if (!vendaConcluida) return;
-    const phone = cleanPhone(vendaConcluida.clienteWhatsapp);
     const texto = mensagemWhatsAppCustom || gerarTextoMensagemVenda(vendaConcluida);
-
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
+    abrirLinkWhatsApp(vendaConcluida.clienteWhatsapp, texto);
     onVoltar();
   };
 

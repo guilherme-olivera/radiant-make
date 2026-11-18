@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, DollarSign, ShoppingBag, Award, Download, MessageCircle, Trash2, Calendar, FileSpreadsheet, Package, Sparkles } from 'lucide-react';
 import { Venda, Produto, ConfiguracoesLoja } from '../types';
-import { formatCurrency, formatDateBR, cleanPhone } from '../utils/whatsapp';
+import { formatCurrency, formatDateBR, cleanPhone, abrirLinkWhatsApp } from '../utils/whatsapp';
 
 interface RelatoriosProps {
   vendas: Venda[];
@@ -91,7 +91,6 @@ export const Relatorios: React.FC<RelatoriosProps> = ({
   const handleReenviarComprovante = (venda: Venda) => {
     const primeiroNome = venda.clienteNome.split(' ')[0];
     const itensTexto = venda.itens.map(i => `${i.quantidade}x ${i.nome} - ${formatCurrency(i.precoUnitario)}`).join('\n');
-    const phone = cleanPhone(venda.clienteWhatsapp);
 
     let texto = `Oi, ${primeiroNome}! ✨ Aqui está a 2ª via do seu comprovante da Radiant Make:\n\n🛍️ *Resumo do Pedido #${venda.id}:*\n${itensTexto}\n\n💰 *Total:* ${formatCurrency(venda.total)}`;
 
@@ -99,8 +98,7 @@ export const Relatorios: React.FC<RelatoriosProps> = ({
       texto += `\n\n📅 *Vencimento:* ${formatDateBR(venda.dataVencimento)}\n🔑 *Chave Pix (${config.tipoChavePix}):* ${config.chavePix}\n\nAssim que fizer o Pix no dia combinado, é só me mandar o comprovante aqui. Muito obrigada pela confiança! 🌸`;
     }
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
+    abrirLinkWhatsApp(venda.clienteWhatsapp, texto);
   };
 
   // Exportar Relatório em CSV (compatível com Excel)
