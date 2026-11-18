@@ -100,9 +100,32 @@ export const App: React.FC = () => {
   };
 
   const handleExcluirVenda = (id: string) => {
+    const vendaParaExcluir = vendas.find(v => v.id === id);
+
+    // 1. Devolve produtos ao estoque
+    if (vendaParaExcluir && vendaParaExcluir.itens) {
+      const produtosAtualizados = storage.getProdutos();
+      vendaParaExcluir.itens.forEach(item => {
+        const prod = produtosAtualizados.find(p => p.id === item.produtoId);
+        if (prod) {
+          prod.estoque = (prod.estoque || 0) + item.quantidade;
+        }
+      });
+      storage.saveProdutos(produtosAtualizados);
+      setProdutos(produtosAtualizados);
+    }
+
+    // 2. Remove cobranças vinculadas à venda
+    const cobrancasAtualizadas = cobrancas.filter(c => c.vendaId !== id);
+    storage.saveCobrancas(cobrancasAtualizadas);
+    setCobrancas(cobrancasAtualizadas);
+
+    // 3. Remove a venda
     const atualizadas = vendas.filter(v => v.id !== id);
     setVendas(atualizadas);
     localStorage.setItem('radiant_vendas', JSON.stringify(atualizadas));
+
+    // 4. Sincroniza exclusão e estoques devolvidos na nuvem
     syncService.excluirVendaNaNuvem(id).catch(() => {});
     dispararSyncBackground();
   };

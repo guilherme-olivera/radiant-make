@@ -158,6 +158,7 @@ export const syncService = {
   excluirVendaNaNuvem: async (id: string): Promise<void> => {
     const supabase = getSupabaseClient();
     if (isSupabaseConfigured() && supabase) {
+      await supabase.from('cobrancas').delete().eq('venda_id', id);
       await supabase.from('vendas').delete().eq('id', id);
     }
   },
@@ -267,6 +268,25 @@ export const syncService = {
             itens_detalhados: cob.itensDetalhados || null,
           }))
         );
+      }
+
+      // 6. Configurações da Loja
+      const configLocal = storage.getConfig();
+      if (configLocal) {
+        await supabase.from('configuracoes_loja').upsert({
+          id: 'config_principal',
+          nome_loja: configLocal.nomeLoja,
+          chave_pix: configLocal.chavePix,
+          tipo_chave_pix: configLocal.tipoChavePix,
+          whatsapp_loja: configLocal.whatsappLoja,
+          cupom_aniversario_padrao: configLocal.cupomAniversarioPadrao,
+          mensagem_agradecimento: configLocal.mensagemAgradecimento,
+          mensagem_lembrete: configLocal.mensagemLembrete,
+          mensagem_cobranca: configLocal.mensagemCobranca,
+          mensagem_aniversario: configLocal.mensagemAniversario,
+          mensagem_data_comemorativa: configLocal.mensagemDataComemorativa,
+          updated_at: new Date().toISOString()
+        });
       }
 
       return { sucesso: true, mensagem: 'Dados locais enviados para a nuvem!' };

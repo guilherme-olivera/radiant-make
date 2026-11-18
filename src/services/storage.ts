@@ -34,8 +34,8 @@ export const INITIAL_MARCAS: Marca[] = [
 
 export const INITIAL_CONFIG: ConfiguracoesLoja = {
   nomeLoja: 'Radiant Make',
-  chavePix: '19999999999',
-  tipoChavePix: 'Celular',
+  chavePix: '220.676.908-50',
+  tipoChavePix: 'CPF',
   whatsappLoja: '19999999999',
   cupomAniversarioPadrao: 'NIVER10',
   mensagemAgradecimento: 'Oi, {nome}! ✨ Passando para agradecer pela sua compra na Radiant Make! Seu pedido #{pedidoId} ({itens}) ficou em R$ {valor}. Qualquer dúvida estou por aqui! 💖',

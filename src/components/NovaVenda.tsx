@@ -62,6 +62,7 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
 
   // Modal Pós-Venda (Sucesso e WhatsApp)
   const [vendaConcluida, setVendaConcluida] = useState<Venda | null>(null);
+  const [mensagemWhatsAppCustom, setMensagemWhatsAppCustom] = useState<string>('');
 
   // Filtragem de clientes (por nome ou por referência)
   const clientesFiltrados = clientes.filter(c => {
@@ -215,6 +216,42 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
     setModalResumo(true);
   };
 
+  // Montar texto padrão do WhatsApp com quebra por linha e valores unitários
+  const gerarTextoMensagemVenda = (venda: Venda): string => {
+    const primeiroNome = extrairPrimeiroNome(venda.clienteNome);
+    
+    // Lista cada produto em uma linha com quantidade, nome e valor unitário
+    const linhasItens = venda.itens.map(i => {
+      return `${i.quantidade}x ${i.nome} - ${formatCurrency(i.precoUnitario)}`;
+    }).join('\n');
+
+    let texto = `Oi, ${primeiroNome}! ✨ Muito obrigada pela sua compra na Radiant Make! 💖\n\n🛍️ *Resumo do Pedido #${venda.id}:*\n${linhasItens}`;
+
+    if (venda.desconto && venda.desconto > 0) {
+      const sub = venda.subtotal || (venda.total + venda.desconto);
+      texto += `\n\n🏷️ *Subtotal:* ${formatCurrency(sub)}`;
+      texto += `\n🎁 *Desconto Especial:* - ${formatCurrency(venda.desconto)}`;
+      texto += `\n💰 *Total com Desconto:* ${formatCurrency(venda.total)}`;
+    } else {
+      texto += `\n\n💰 *Total:* ${formatCurrency(venda.total)}`;
+    }
+
+    if (venda.formaPagamento === 'PRAZO' && venda.dataVencimento) {
+      const qParcelas = venda.quantidadeParcelas || 1;
+      if (qParcelas > 1) {
+        texto += `\n\n📅 *Condição Combinada:* ${qParcelas}x de ${formatCurrency(venda.total / qParcelas)}`;
+        texto += `\n📌 *1ª Parcela:* Vence dia ${formatDateBR(venda.dataVencimento)}`;
+      } else {
+        texto += `\n\n📅 *Vencimento Combinado:* ${formatDateBR(venda.dataVencimento)}`;
+      }
+      texto += `\n🔑 *Chave Pix (${config.tipoChavePix}):* ${config.chavePix}\n\nAssim que fizer o Pix no dia combinado, é só me mandar o comprovante aqui. Muito obrigada pela confiança! 🌸`;
+    } else {
+      texto += `\n🔑 *Chave Pix (${config.tipoChavePix}):* ${config.chavePix}\n\nAssim que fizer o Pix, é só me mandar o comprovante aqui. Muito obrigada pela confiança! 🌸`;
+    }
+
+    return texto;
+  };
+
   // Executar e Salvar Venda Efetivamente
   const handleFinalizar = () => {
     if (!clienteSelecionado) {
@@ -245,38 +282,14 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
     onSalvarVenda(novaVenda);
     setModalResumo(false);
     setVendaConcluida(novaVenda);
+    setMensagemWhatsAppCustom(gerarTextoMensagemVenda(novaVenda));
   };
 
   // Disparar WhatsApp da Venda
   const handleEnviarWhatsApp = () => {
     if (!vendaConcluida) return;
-    const primeiroNome = extrairPrimeiroNome(vendaConcluida.clienteNome);
-    const itensTexto = vendaConcluida.itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ');
     const phone = cleanPhone(vendaConcluida.clienteWhatsapp);
-
-    let texto = `Oi, ${primeiroNome}! ✨ Muito obrigada pela sua compra na Radiant Make! 💖\n\n🛍️ *Resumo do Pedido #${vendaConcluida.id}:*\n${itensTexto}`;
-
-    if (vendaConcluida.desconto && vendaConcluida.desconto > 0) {
-      const sub = vendaConcluida.subtotal || (vendaConcluida.total + vendaConcluida.desconto);
-      texto += `\n\n🏷️ *Subtotal:* ${formatCurrency(sub)}`;
-      texto += `\n🎁 *Desconto Especial:* - ${formatCurrency(vendaConcluida.desconto)}`;
-      texto += `\n💰 *Total com Desconto:* ${formatCurrency(vendaConcluida.total)}`;
-    } else {
-      texto += `\n💰 *Total:* ${formatCurrency(vendaConcluida.total)}`;
-    }
-
-    if (vendaConcluida.formaPagamento === 'PRAZO' && vendaConcluida.dataVencimento) {
-      const qParcelas = vendaConcluida.quantidadeParcelas || 1;
-      if (qParcelas > 1) {
-        texto += `\n\n📅 *Condição Combinada:* ${qParcelas}x de ${formatCurrency(vendaConcluida.total / qParcelas)}`;
-        texto += `\n📌 *1ª Parcela:* Vence dia ${formatDateBR(vendaConcluida.dataVencimento)}`;
-      } else {
-        texto += `\n\n📅 *Vencimento Combinado:* ${formatDateBR(vendaConcluida.dataVencimento)}`;
-      }
-      texto += `\n🔑 *Chave Pix (${config.tipoChavePix}):* ${config.chavePix}\n\nAssim que fizer o Pix no dia combinado, é só me mandar o comprovante aqui. Muito obrigada pela confiança! 🌸`;
-    } else {
-      texto += `\n\nQualquer dúvida ou quando quiser reposição dos seus produtinhos, só me chamar aqui! ✨`;
-    }
+    const texto = mensagemWhatsAppCustom || gerarTextoMensagemVenda(vendaConcluida);
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
@@ -1164,19 +1177,19 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
       {/* MODAL DE SUCESSO & ENVIO DE WHATSAPP */}
       {vendaConcluida && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl text-center space-y-4 animate-in fade-in zoom-in duration-200">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl text-center space-y-3.5 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+            <div className="w-11 h-11 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-lg font-bold shrink-0">
               ✓
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-stone-900">Venda Registrada!</h3>
-              <p className="text-xs text-stone-500 mt-1">
-                Envie o agradecimento para <b>{extrairPrimeiroNome(vendaConcluida.clienteNome)}</b> no WhatsApp:
+              <h3 className="font-extrabold text-base text-stone-900">Venda Registrada com Sucesso!</h3>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Revise ou edite o texto abaixo antes de enviar para <b>{extrairPrimeiroNome(vendaConcluida.clienteNome)}</b>:
               </p>
             </div>
 
             {vendaConcluida.desconto && vendaConcluida.desconto > 0 && (
-              <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-2xl text-xs flex justify-between items-center text-emerald-800 font-bold">
+              <div className="bg-emerald-50 border border-emerald-200 p-2 rounded-2xl text-xs flex justify-between items-center text-emerald-800 font-bold shrink-0">
                 <span className="flex items-center gap-1">
                   <Tag className="w-3.5 h-3.5 text-emerald-600" />
                   Desconto Concedido:
@@ -1185,24 +1198,41 @@ export const NovaVenda: React.FC<NovaVendaProps> = ({
               </div>
             )}
 
-            <div className="bg-stone-50 p-3 rounded-2xl border border-stone-200 text-left text-[11px] text-stone-700 space-y-1 font-mono">
-              <p className="font-bold text-radiant-pink font-sans text-xs">Mensagem Pronta:</p>
-              <p className="line-clamp-4">
-                Oi, {extrairPrimeiroNome(vendaConcluida.clienteNome)}! ✨ Agradecemos pela compra na Radiant Make! Pedido #{vendaConcluida.id} no valor de {formatCurrency(vendaConcluida.total)}. {vendaConcluida.quantidadeParcelas && vendaConcluida.quantidadeParcelas > 1 ? `(${vendaConcluida.quantidadeParcelas}x). ` : ''}Chave Pix ({config.tipoChavePix}): {config.chavePix}. Obrigada! 💖
-              </p>
+            {/* Caixa de Edição da Mensagem antes de disparar */}
+            <div className="text-left space-y-1 flex-1 min-h-[160px] flex flex-col">
+              <div className="flex items-center justify-between text-[11px] text-stone-500 font-bold">
+                <span className="flex items-center gap-1 text-radiant-pink">
+                  ✏️ Mensagem para o WhatsApp (Editável):
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMensagemWhatsAppCustom(gerarTextoMensagemVenda(vendaConcluida))}
+                  className="text-[10px] text-stone-400 hover:text-stone-700 underline font-normal"
+                >
+                  Restaurar original
+                </button>
+              </div>
+              <textarea
+                rows={7}
+                value={mensagemWhatsAppCustom}
+                onChange={e => setMensagemWhatsAppCustom(e.target.value)}
+                className="w-full flex-1 p-2.5 bg-stone-50 border border-stone-200 rounded-2xl text-xs text-stone-800 font-sans leading-relaxed focus:outline-none focus:border-radiant-pink resize-none shadow-inner"
+              />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 pt-1 shrink-0">
               <button
+                type="button"
                 onClick={handleEnviarWhatsApp}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 transition"
+                className="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 transition"
               >
                 <MessageCircle className="w-4 h-4" />
-                Enviar WhatsApp (1 Toque)
+                Enviar Mensagem no WhatsApp
               </button>
               <button
+                type="button"
                 onClick={onVoltar}
-                className="w-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-medium py-2.5 rounded-2xl text-xs transition"
+                className="w-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-medium py-2 rounded-2xl text-xs transition"
               >
                 Concluir sem Enviar
               </button>
